@@ -1,0 +1,46 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    color: #e0e0e0;
+    background-color: #333;
+}
+
+.navbar {
+    overflow: hidden;
+    background-color: #222;
+    text-align: center; /* Center navbar links horizontally */
+}
+
+.navbar a {
+    float: none; /* Remove float to allow centering */
+    display: inline-block; /* Change display to inline-block */
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.navbar a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+}
+
+h1 {
+    margin: 0;
+    font-size: 4em;
+}
+
+h3 {
+    margin: 10px 0 0;  /* Spacing above h3, adjust as needed */
+    font-size: 1.5em;  /* Smaller than h1, but still significant */
+    color: #ccc;  /* Slightly lighter than the main text color */
+}

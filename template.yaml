@@ -12,6 +12,15 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: jsat-robin-reader-csv-upload
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedHeaders:
+              - "*"
 
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
@@ -39,7 +48,18 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
 
-  UploadFunction:
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - "POST"
+        AllowHeaders:
+          - "*"
+        
+  UploadCsvFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: robinReader/package
@@ -56,6 +76,7 @@ Resources:
         UploadCsvApi:
           Type: HttpApi
           Properties:
+            ApiId: !Ref MyHttpApi
             Path: /upload
             Method: post
 
@@ -78,6 +99,7 @@ Resources:
   #           Method: post
 
 Outputs:
-  UploadApi:
-    Description: "Endpoint for api"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/upload"            
+  ApiEndpoint:
+    Description: "API endpoint URL for Prod environment"
+    Value: !Sub "https://${MyHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+       

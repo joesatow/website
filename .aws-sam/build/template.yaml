@@ -10,6 +10,15 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: jsat-robin-reader-csv-upload
+      CorsConfiguration:
+        CorsRules:
+        - AllowedOrigins:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          AllowedHeaders:
+          - '*'
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -37,10 +46,20 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
-  UploadFunction:
+  MyHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+        - '*'
+        AllowMethods:
+        - POST
+        AllowHeaders:
+        - '*'
+  UploadCsvFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: UploadFunction
+      CodeUri: UploadCsvFunction
       Handler: uploadCsvFunction.lambda_handler
       Runtime: python3.10
       Environment:
@@ -58,12 +77,14 @@ Resources:
         UploadCsvApi:
           Type: HttpApi
           Properties:
+            ApiId:
+              Ref: MyHttpApi
             Path: /upload
             Method: post
     Metadata:
-      SamResourceId: UploadFunction
+      SamResourceId: UploadCsvFunction
 Outputs:
-  UploadApi:
-    Description: Endpoint for api
+  ApiEndpoint:
+    Description: API endpoint URL for Prod environment
     Value:
-      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/upload
+      Fn::Sub: https://${MyHttpApi}.execute-api.${AWS::Region}.amazonaws.com

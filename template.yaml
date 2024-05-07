@@ -8,21 +8,10 @@ Globals:
     MemorySize: 128
 
 Resources:
-  RobinReaderUploadBucket:
+  RobinReaderCsvUploadBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: jsat-robin-reader-upload
-      AccessControl: Private
-      CorsConfiguration:
-        CorsRules:
-          - AllowedOrigins:
-              - "*"
-            AllowedMethods:
-              - "PUT"
-              - "POST"
-              - "GET"
-            AllowedHeaders:
-              - "*"
+      BucketName: jsat-robin-reader-csv-upload
 
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
@@ -42,10 +31,10 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: s3:PutObject
-                Resource: !Sub arn:aws:s3:::mkt-anon-site/*
+                Resource: !Sub arn:aws:s3:::jsat-robin-reader-csv-upload/*
               - Effect: Allow
                 Action: s3:GetObject
-                Resource: !Sub arn:aws:s3:::mkt-anon-site/*
+                Resource: !Sub arn:aws:s3:::jsat-robin-reader-csv-upload/*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
@@ -53,34 +42,42 @@ Resources:
   UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: robinReader/package/
-      Handler: app.lambda_handler
-      Role: !GetAtt MktAnonSiteFunctionRole.Arn
+      CodeUri: robinReader/package
+      Handler: uploadCsvFunction.lambda_handler
       Runtime: python3.10
-      Architectures:
-        - x86_64
-      Layers:
-        - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
+      Environment:
+        Variables:
+          BUCKET_NAME: jsat-robin-reader-csv-upload
+      Role: !GetAtt MktAnonSiteFunctionRole.Arn
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref RobinReaderCsvUploadBucket
       Events:
-        ApiCall:
-          Type: HttpApi 
+        UploadCsvApi:
+          Type: HttpApi
           Properties:
             Path: /upload
             Method: post
-          CorsConfiguration:
-            AllowOrigins:
-              - "*"
-            AllowMethods:
-              - POST
-              - OPTIONS
-            AllowHeaders:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
+
+  # UploadFunctionasdfs:
+  #   Type: AWS::Serverless::Function
+  #   Properties:
+  #     CodeUri: robinReader/package/
+  #     Handler: app.lambda_handler
+  #     Role: !GetAtt MktAnonSiteFunctionRole.Arn
+  #     Runtime: python3.10
+  #     Architectures:
+  #       - x86_64
+  #     Layers:
+  #       - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
+  #     Events:
+  #       ApiCall:
+  #         Type: HttpApi 
+  #         Properties:
+  #           Path: /uploadsdf
+  #           Method: post
 
 Outputs:
   UploadApi:
     Description: "Endpoint for api"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/stamp/upload"            
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/upload"            

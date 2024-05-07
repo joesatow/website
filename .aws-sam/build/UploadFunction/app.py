@@ -40,5 +40,9 @@ def run():
   writeCSV(tradeList)
 
 def lambda_handler(event, context):
+  # u
+  # generate presigned url to grab 
+  # execcute
+  
   print("peen")
   

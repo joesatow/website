@@ -6,21 +6,10 @@ Globals:
     Timeout: 10
     MemorySize: 128
 Resources:
-  RobinReaderUploadBucket:
+  RobinReaderCsvUploadBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: jsat-robin-reader-upload
-      AccessControl: Private
-      CorsConfiguration:
-        CorsRules:
-        - AllowedOrigins:
-          - '*'
-          AllowedMethods:
-          - PUT
-          - POST
-          - GET
-          AllowedHeaders:
-          - '*'
+      BucketName: jsat-robin-reader-csv-upload
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -40,11 +29,11 @@ Resources:
           - Effect: Allow
             Action: s3:PutObject
             Resource:
-              Fn::Sub: arn:aws:s3:::mkt-anon-site/*
+              Fn::Sub: arn:aws:s3:::jsat-robin-reader-csv-upload/*
           - Effect: Allow
             Action: s3:GetObject
             Resource:
-              Fn::Sub: arn:aws:s3:::mkt-anon-site/*
+              Fn::Sub: arn:aws:s3:::jsat-robin-reader-csv-upload/*
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
@@ -52,38 +41,29 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: UploadFunction
-      Handler: app.lambda_handler
+      Handler: uploadCsvFunction.lambda_handler
+      Runtime: python3.10
+      Environment:
+        Variables:
+          BUCKET_NAME: jsat-robin-reader-csv-upload
       Role:
         Fn::GetAtt:
         - MktAnonSiteFunctionRole
         - Arn
-      Runtime: python3.10
-      Architectures:
-      - x86_64
-      Layers:
-      - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
+      Policies:
+      - S3CrudPolicy:
+          BucketName:
+            Ref: RobinReaderCsvUploadBucket
       Events:
-        ApiCall:
+        UploadCsvApi:
           Type: HttpApi
           Properties:
             Path: /upload
             Method: post
-          CorsConfiguration:
-            AllowOrigins:
-            - '*'
-            AllowMethods:
-            - POST
-            - OPTIONS
-            AllowHeaders:
-            - Content-Type
-            - X-Amz-Date
-            - Authorization
-            - X-Api-Key
-            - X-Amz-Security-Token
     Metadata:
       SamResourceId: UploadFunction
 Outputs:
   UploadApi:
     Description: Endpoint for api
     Value:
-      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/stamp/upload
+      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/upload

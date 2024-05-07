@@ -1,35 +1,23 @@
-function uploadFile() {
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
+async function uploadFile() {
+    const file = document.getElementById('fileInput').files[0];
+    const fileName = file.name;
 
-    if (!file) {
-        alert('Please select a CSV file to upload.');
-        return;
-    }
+    // Fetch the pre-signed URL from your API
+    const response = await fetch(`http://127.0.0.1:3000/upload?file_name=${fileName}`);
+    const preSignedUrl = await response.text();
 
-    const formData = new FormData();
-    formData.append('file', file);
-   
-    fetch('http://127.0.0.1:3000/upload', {
+    // Use the pre-signed URL to upload the file
+    const uploadResult = await fetch(preSignedUrl, {
         method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log('Success:', data);
-        alert('File uploaded successfully!');
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-        alert('Error uploading file.');
+        body: file,
+        headers: {
+            'Content-Type': 'text/plain'
+        }
     });
 
-    // website front end 
-    // upload csv file to s3
-    // generate presigned url of s3 csv object to use the object in lambda function
-
-
-    // execute logic on csv to create .xlsx file
-    // upload xlsx to s3
-    // return presigned url of new xlsx file for user to download
+    if (uploadResult.ok) {
+        console.log('File uploaded successfully!');
+    } else {
+        console.log('Failed to upload file.');
+    }
 }

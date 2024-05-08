@@ -56,6 +56,16 @@ Resources:
         - POST
         AllowHeaders:
         - '*'
+  CreateXlsxApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+        - '*'
+        AllowMethods:
+        - POST
+        AllowHeaders:
+        - '*'
   UploadCsvFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -106,6 +116,8 @@ Resources:
         CreateXlsxApiCalled:
           Type: HttpApi
           Properties:
+            ApiId:
+              Ref: CreateXlsxApi
             Path: /create
             Method: post
     Metadata:
@@ -118,4 +130,4 @@ Outputs:
   CreateXlsxApiEndpoint:
     Description: Endpoint URL for creating XLSX
     Value:
-      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/create
+      Fn::Sub: https://${CreateXlsxApi}.execute-api.${AWS::Region}.amazonaws.com/create

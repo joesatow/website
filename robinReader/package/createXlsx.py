@@ -11,12 +11,10 @@ import json
 
 def lambda_handler(event, context):
   event_body = json.loads(event['body'])
-  csv_file = event_body['csv_file']
-  print(csv_file)
-
+  csv_file_name = event_body['csv_file']
+  
   # Get account activity list
-  accountActivityList = getData() # change to GET from s3 bucket 
-##################
+  accountActivityList = getData(csv_file_name) 
 
   # Filter data
   accountActivityList = filterData(accountActivityList)
@@ -43,11 +41,16 @@ def lambda_handler(event, context):
       del contractDict[description]
 
   writeCSV(tradeList)
+  
   return {
         "statusCode": 200,
+        "headers": {
+            "Access-Control-Allow-Origin": "*", # Required for CORS support to work
+            "Access-Control-Allow-Credentials": "true", # Required for cookies, authorization headers with HTTPS
+        },
         "body": json.dumps({
             "message": "hello robin",
-            "data": csv_file
+            "data": csv_file_name
         }),
     }
   

@@ -15,13 +15,6 @@ def lambda_handler(event, context):
                                               Params={'Bucket': bucket_name, 'Key': object_name},
                                               ExpiresIn=expiration)
     
-    # url = presigned_url
-    # payload = event["body"]
-    # headers = {
-    #     'Content-Type': 'text/csv'
-    # }
-
-    # requests.request("PUT", url, headers=headers, data=payload)
 
     return {
         'statusCode': 200,

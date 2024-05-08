@@ -44,3 +44,42 @@ h3 {
     font-size: 1.5em;  /* Smaller than h1, but still significant */
     color: #ccc;  /* Slightly lighter than the main text color */
 }
+
+input[type="file"] {
+    padding: 10px 15px;
+    color: #f2f2f2;
+    background-color: #444;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="file"]::file-selector-button {
+    color: #f2f2f2;
+    background-color: #666;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="file"]:hover::file-selector-button {
+    background-color: #888;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #666;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #888;
+}

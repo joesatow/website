@@ -46,7 +46,7 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
-  MyHttpApi:
+  CsvUploadApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       CorsConfiguration:
@@ -74,17 +74,48 @@ Resources:
           BucketName:
             Ref: RobinReaderCsvUploadBucket
       Events:
-        UploadCsvApi:
+        UploadCsvApiCalled:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: MyHttpApi
+              Ref: CsvUploadApi
             Path: /upload
             Method: post
     Metadata:
       SamResourceId: UploadCsvFunction
+  CreateXlsxFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: CreateXlsxFunction
+      Handler: createXlsx.lambda_handler
+      Runtime: python3.10
+      Layers:
+      - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
+      Environment:
+        Variables:
+          BUCKET_NAME: jsat-robin-reader-csv-upload
+      Role:
+        Fn::GetAtt:
+        - MktAnonSiteFunctionRole
+        - Arn
+      Policies:
+      - S3CrudPolicy:
+          BucketName:
+            Ref: RobinReaderCsvUploadBucket
+      Events:
+        CreateXlsxApiCalled:
+          Type: HttpApi
+          Properties:
+            Path: /create
+            Method: post
+    Metadata:
+      SamResourceId: CreateXlsxFunction
 Outputs:
-  ApiEndpoint:
-    Description: API endpoint URL for Prod environment
+  UploadCsvApiEndpoint:
+    Description: API endpoint URL for uploading CSV
     Value:
-      Fn::Sub: https://${MyHttpApi}.execute-api.${AWS::Region}.amazonaws.com
+      Fn::Sub: https://${CsvUploadApi}.execute-api.${AWS::Region}.amazonaws.com/upload
+  CreateXlsxApiEndpoint:
+    Description: Endpoint URL for creating XLSX
+    Value:
+      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/create

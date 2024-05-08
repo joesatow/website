@@ -48,7 +48,7 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
 
-  MyHttpApi:
+  CsvUploadApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       CorsConfiguration:
@@ -73,33 +73,41 @@ Resources:
         - S3CrudPolicy:
             BucketName: !Ref RobinReaderCsvUploadBucket
       Events:
-        UploadCsvApi:
+        UploadCsvApiCalled:
           Type: HttpApi
           Properties:
-            ApiId: !Ref MyHttpApi
+            ApiId: !Ref CsvUploadApi
             Path: /upload
             Method: post
 
-  # UploadFunctionasdfs:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: robinReader/package/
-  #     Handler: app.lambda_handler
-  #     Role: !GetAtt MktAnonSiteFunctionRole.Arn
-  #     Runtime: python3.10
-  #     Architectures:
-  #       - x86_64
-  #     Layers:
-  #       - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
-  #     Events:
-  #       ApiCall:
-  #         Type: HttpApi 
-  #         Properties:
-  #           Path: /uploadsdf
-  #           Method: post
+  CreateXlsxFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: robinReader/package
+      Handler: createXlsx.lambda_handler
+      Runtime: python3.10
+      Layers:
+        - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
+      Environment:
+        Variables:
+          BUCKET_NAME: jsat-robin-reader-csv-upload
+      Role: !GetAtt MktAnonSiteFunctionRole.Arn
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref RobinReaderCsvUploadBucket
+      Events:
+        CreateXlsxApiCalled:
+          Type: HttpApi
+          Properties:
+            Path: /create
+            Method: post
 
 Outputs:
-  ApiEndpoint:
-    Description: "API endpoint URL for Prod environment"
-    Value: !Sub "https://${MyHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  UploadCsvApiEndpoint:
+    Description: "API endpoint URL for uploading CSV"
+    Value: !Sub "https://${CsvUploadApi}.execute-api.${AWS::Region}.amazonaws.com/upload"
+  
+  CreateXlsxApiEndpoint:
+    Description: "Endpoint URL for creating XLSX"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/create"
        

@@ -33,23 +33,23 @@ async function uploadFile() {
     console.error('Error:', error);
   }
 
-  // Request a pre-signed URL from your API
-  try {
-    const body = JSON.stringify({
-      "csv_file": "test.csv"
-    });
+  // // create xlsx
+  // try {
+  //   const body = JSON.stringify({
+  //     "csv_file": fileName
+  //   });
 
-    const response = await fetch("https://3xqg7t9luh.execute-api.us-east-2.amazonaws.com/create", {
-      method: "POST",
-      body: body, // Directly put the file object here
-      headers: {
-        'Content-Type': 'application/json' // Adjust this if your S3 bucket expects a specific content type
-      },
-      redirect: 'follow'
-    });
-    const result = await response.text();
-    console.log(result)
-  } catch (error) {
-    console.error('Error:', error);
-  }
+  //   const response = await fetch("https://3xqg7t9luh.execute-api.us-east-2.amazonaws.com/create", {
+  //     method: "POST",
+  //     body: body, // Directly put the file object here
+  //     headers: {
+  //       'Content-Type': 'application/json' // Adjust this if your S3 bucket expects a specific content type
+  //     },
+  //     redirect: 'follow'
+  //   });
+  //   const result = await response.text();
+  //   console.log(result)
+  // } catch (error) {
+  //   console.error('Error:', error);
+  // }
 }

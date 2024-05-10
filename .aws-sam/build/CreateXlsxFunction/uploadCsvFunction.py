@@ -6,7 +6,7 @@ import os
 
 def lambda_handler(event, context):
     s3 = boto3.client('s3')
-    bucket_name = os.environ['BUCKET_NAME']  # S3 bucket name from environment variable
+    bucket_name = os.environ['CSV_BUCKET']  # S3 bucket name from environment variable
     object_name = event['queryStringParameters']['file_name']  # File name from query parameters
     expiration = 3600  # URL expiration time
 

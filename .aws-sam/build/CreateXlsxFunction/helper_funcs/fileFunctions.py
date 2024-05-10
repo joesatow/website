@@ -4,7 +4,7 @@ from aws_jserver import get_object_s3
 from io import StringIO
 
 def getData(file_name):
-    activityFile_bytes = get_object_s3(os.environ['BUCKET_NAME'], file_name)
+    activityFile_bytes = get_object_s3(os.environ['CSV_BUCKET'], file_name)
     activityFile_string = activityFile_bytes.decode('utf-8')
     
     # Use StringIO to simulate a file object from the CSV string

@@ -40,8 +40,8 @@ def lambda_handler(event, context):
       tradeList.append(getTradeDictUpdate(currentContract, description, line['Process Date'])) # use process date to get buy date
       del contractDict[description]
 
-  writeCSV(tradeList)
-  
+  #writeCSV(tradeList)
+
   return {
         "statusCode": 200,
         "headers": {

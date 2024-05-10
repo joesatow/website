@@ -11,7 +11,21 @@ Resources:
   RobinReaderCsvUploadBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: jsat-robin-reader-csv-upload
+      BucketName: robin-csv-upload
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+            AllowedHeaders:
+              - "*"
+
+  RobinReaderFinishedXlsxBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: robin-finished-xlsx
       CorsConfiguration:
         CorsRules:
           - AllowedOrigins:
@@ -40,10 +54,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: s3:PutObject
-                Resource: !Sub arn:aws:s3:::jsat-robin-reader-csv-upload/*
+                Resource: !Sub arn:aws:s3:::robin-csv-upload/*
               - Effect: Allow
                 Action: s3:GetObject
-                Resource: !Sub arn:aws:s3:::jsat-robin-reader-csv-upload/*
+                Resource: !Sub arn:aws:s3:::robin-csv-upload/*
+              - Effect: Allow
+                Action: s3:PutObject
+                Resource: !Sub arn:aws:s3:::robin-finished-xlsx/*
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:aws:s3:::robin-finished-xlsx/*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
@@ -78,11 +98,9 @@ Resources:
       Runtime: python3.10
       Environment:
         Variables:
-          BUCKET_NAME: jsat-robin-reader-csv-upload
+          CSV_BUCKET: robin-csv-upload
+          XLSX_BUCKET: robin-finished-xlsx
       Role: !GetAtt MktAnonSiteFunctionRole.Arn
-      Policies:
-        - S3CrudPolicy:
-            BucketName: !Ref RobinReaderCsvUploadBucket
       Events:
         UploadCsvApiCalled:
           Type: HttpApi
@@ -101,11 +119,8 @@ Resources:
         - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
       Environment:
         Variables:
-          BUCKET_NAME: jsat-robin-reader-csv-upload
+          XLSX_BUCKET: jsat-robin-reader-csv-upload
       Role: !GetAtt MktAnonSiteFunctionRole.Arn
-      Policies:
-        - S3CrudPolicy:
-            BucketName: !Ref RobinReaderCsvUploadBucket
       Events:
         CreateXlsxApiCalled:
           Type: HttpApi

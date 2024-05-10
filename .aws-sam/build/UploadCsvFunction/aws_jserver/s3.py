@@ -23,7 +23,7 @@ def upload_object_to_s3(file_content, bucket_name, object_name):
         return False
     return True
 
-def generate_presigned_url(bucket_name, object_name):
+def generate_presigned_url_get(bucket_name, object_name):
     # Create an S3 client
     s3_client = boto3.client('s3')
     

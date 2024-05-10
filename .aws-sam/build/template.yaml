@@ -9,7 +9,20 @@ Resources:
   RobinReaderCsvUploadBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: jsat-robin-reader-csv-upload
+      BucketName: robin-csv-upload
+      CorsConfiguration:
+        CorsRules:
+        - AllowedOrigins:
+          - '*'
+          AllowedMethods:
+          - GET
+          - PUT
+          AllowedHeaders:
+          - '*'
+  RobinReaderFinishedXlsxBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: robin-finished-xlsx
       CorsConfiguration:
         CorsRules:
         - AllowedOrigins:
@@ -38,11 +51,19 @@ Resources:
           - Effect: Allow
             Action: s3:PutObject
             Resource:
-              Fn::Sub: arn:aws:s3:::jsat-robin-reader-csv-upload/*
+              Fn::Sub: arn:aws:s3:::robin-csv-upload/*
           - Effect: Allow
             Action: s3:GetObject
             Resource:
-              Fn::Sub: arn:aws:s3:::jsat-robin-reader-csv-upload/*
+              Fn::Sub: arn:aws:s3:::robin-csv-upload/*
+          - Effect: Allow
+            Action: s3:PutObject
+            Resource:
+              Fn::Sub: arn:aws:s3:::robin-finished-xlsx/*
+          - Effect: Allow
+            Action: s3:GetObject
+            Resource:
+              Fn::Sub: arn:aws:s3:::robin-finished-xlsx/*
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
@@ -74,15 +95,12 @@ Resources:
       Runtime: python3.10
       Environment:
         Variables:
-          BUCKET_NAME: jsat-robin-reader-csv-upload
+          CSV_BUCKET: robin-csv-upload
+          XLSX_BUCKET: robin-finished-xlsx
       Role:
         Fn::GetAtt:
         - MktAnonSiteFunctionRole
         - Arn
-      Policies:
-      - S3CrudPolicy:
-          BucketName:
-            Ref: RobinReaderCsvUploadBucket
       Events:
         UploadCsvApiCalled:
           Type: HttpApi

@@ -8,20 +8,36 @@ async function uploadFile() {
 
   // Request a pre-signed URL from your API
   try {
-    const response = await fetch(`https://enho5x52t2.execute-api.us-east-2.amazonaws.com/upload?file_name=${fileName}`, {
+    const url_test = 'http://192.168.118.134:3000/upload'
+    const url_prod = 'https://z3qah0v4y8.execute-api.us-east-2.amazonaws.com/upload'
+    const body = {
+      csv_file_name: fileName
+    }
+    const response = await fetch(`${url_test}`, {
       method: "POST",
-      redirect: "follow"
+      redirect: "follow",
+      body: JSON.stringify(body)
     });
+    
     const result = await response.text();
-    const presignedUrl = result; // Ensure this variable correctly extracts the URL from the response
+    const presignedUrl = JSON.parse(result); // Ensure this variable correctly extracts the URL from the response
+
+    url = presignedUrl.url
+    fields = presignedUrl.fields
+
+    const formData = new FormData();
+
+    for (const key in fields) {
+      formData.append(key, fields[key]);
+    }
+
+    // Append file to formData - assuming 'file' is the key for your file
+    formData.append('file', file);
 
     // Use the pre-signed URL to upload the file
-    const uploadResponse = await fetch(presignedUrl, {
-      method: "PUT",
-      body: file, // Directly put the file object here
-      headers: {
-        'Content-Type': 'binary/octet-stream' // Adjust this if your S3 bucket expects a specific content type
-      }
+    const uploadResponse = await fetch(url, {
+      method: "POST",
+      body: formData
     });
 
     if (uploadResponse.ok) {
@@ -36,7 +52,7 @@ async function uploadFile() {
   // // create xlsx
   // try {
   //   const body = JSON.stringify({
-  //     "csv_file": fileName
+  //     "csv_file_name": fileName
   //   });
 
   //   const response = await fetch("https://3xqg7t9luh.execute-api.us-east-2.amazonaws.com/create", {

@@ -1,8 +1,10 @@
 import pandas as pd
 import openpyxl as px
 from openpyxl.worksheet.table import Table, TableStyleInfo
+from aws_jserver import upload_object_to_s3
+import os
 
-PATH = './output.xlsx'
+PATH = '/tmp/output.xlsx'
 def writeCSV(tradeList):
     df = pd.DataFrame(tradeList)
     
@@ -75,3 +77,11 @@ def writeCSV(tradeList):
 
     ws.add_table(tab)
     wb.save(PATH)
+    wb.close()
+    file_size_bytes = os.path.getsize('/tmp/output.xlsx')
+    file_size_kb = file_size_bytes / 1024  # Convert bytes to kilobytes
+
+    print(f"File size: {file_size_kb:.2f} KB")
+    if upload_object_to_s3(PATH, os.environ['XLSX_BUCKET'], "output.xlsx"):
+        return True
+    return False

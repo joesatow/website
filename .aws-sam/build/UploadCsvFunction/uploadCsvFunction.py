@@ -1,20 +1,18 @@
-import boto3
+import json
 import os
-# from aws_jserver import upload_object_to_s3
+from aws_jserver import generate_presigned_url_post
 # import requests
 
 
 def lambda_handler(event, context):
-    s3 = boto3.client('s3')
     bucket_name = os.environ['CSV_BUCKET']  # S3 bucket name from environment variable
-    object_name = event['queryStringParameters']['file_name']  # File name from query parameters
+    event_body = json.loads(event['body'])
+    object_name = event_body['csv_file_name']
     expiration = 3600  # URL expiration time
 
     # Generate pre-signed URL
-    presigned_url = s3.generate_presigned_url('put_object',
-                                              Params={'Bucket': bucket_name, 'Key': object_name},
-                                              ExpiresIn=expiration)
-    
+    presigned_url = generate_presigned_url_post(bucket_name, object_name, expiration)
+    presigned_url = json.dumps(presigned_url)
 
     return {
         'statusCode': 200,

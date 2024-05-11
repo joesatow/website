@@ -11,7 +11,7 @@ import json
 
 def lambda_handler(event, context):
   event_body = json.loads(event['body'])
-  csv_file_name = event_body['csv_file']
+  csv_file_name = event_body['csv_file_name']
   
   # Get account activity list
   accountActivityList = getData(csv_file_name) 
@@ -40,7 +40,7 @@ def lambda_handler(event, context):
       tradeList.append(getTradeDictUpdate(currentContract, description, line['Process Date'])) # use process date to get buy date
       del contractDict[description]
 
-  #writeCSV(tradeList)
+  upload_status = writeCSV(tradeList)
 
   return {
         "statusCode": 200,
@@ -50,7 +50,8 @@ def lambda_handler(event, context):
         },
         "body": json.dumps({
             "message": "hello robin",
-            "data": csv_file_name
+            "data": csv_file_name,
+            "upload_status:": str(upload_status)
         }),
     }
   

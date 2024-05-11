@@ -23,7 +23,7 @@ def upload_object_to_s3(file_content, bucket_name, object_name):
         return False
     return True
 
-def generate_presigned_url_get(bucket_name, object_name):
+def generate_presigned_url_get(bucket_name, object_name, expiration=3600):
     # Create an S3 client
     s3_client = boto3.client('s3')
     
@@ -32,12 +32,26 @@ def generate_presigned_url_get(bucket_name, object_name):
         response = s3_client.generate_presigned_url('get_object',
                                                     Params={'Bucket': bucket_name,
                                                             'Key': object_name},
-                                                    ExpiresIn=3600)  # Expires in 1 hour
+                                                    ExpiresIn=expiration)  # Expires in 1 hour
         return response
     except Exception as e:
         print(f"Error generating presigned URL: {e}")
         return None
     
+def generate_presigned_url_post(bucket_name, object_name, expiration=3600):
+    s3_client = boto3.client('s3')
+    
+    try:
+        response = s3_client.generate_presigned_post(
+                                                    bucket_name,
+                                                    object_name,
+                                                    ExpiresIn=expiration)  # Expires in 1 hour
+        return response
+    
+    except Exception as e:
+        print(f"Error generating presigned URL: {e}")
+        return None
+
 def get_object_s3(bucket_name, object_key):
      # Create an S3 client
     s3_client = boto3.client('s3')

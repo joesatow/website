@@ -16,7 +16,7 @@ Resources:
           - '*'
           AllowedMethods:
           - GET
-          - PUT
+          - POST
           AllowedHeaders:
           - '*'
   RobinReaderFinishedXlsxBucket:
@@ -29,7 +29,7 @@ Resources:
           - '*'
           AllowedMethods:
           - GET
-          - PUT
+          - POST
           AllowedHeaders:
           - '*'
   MktAnonSiteFunctionRole:
@@ -96,7 +96,6 @@ Resources:
       Environment:
         Variables:
           CSV_BUCKET: robin-csv-upload
-          XLSX_BUCKET: robin-finished-xlsx
       Role:
         Fn::GetAtt:
         - MktAnonSiteFunctionRole
@@ -115,21 +114,18 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: CreateXlsxFunction
-      Handler: createXlsx.lambda_handler
+      Handler: createXlsxFunction.lambda_handler
       Runtime: python3.10
       Layers:
       - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
       Environment:
         Variables:
-          BUCKET_NAME: jsat-robin-reader-csv-upload
+          CSV_BUCKET: robin-csv-upload
+          XLSX_BUCKET: robin-finished-xlsx
       Role:
         Fn::GetAtt:
         - MktAnonSiteFunctionRole
         - Arn
-      Policies:
-      - S3CrudPolicy:
-          BucketName:
-            Ref: RobinReaderCsvUploadBucket
       Events:
         CreateXlsxApiCalled:
           Type: HttpApi

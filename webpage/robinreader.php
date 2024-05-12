@@ -13,6 +13,7 @@
     <div class="content">
         <input type="file" id="fileInput" accept=".csv">
         <button onclick="uploadFile()">Upload File</button>
+        <div class="spinner" id="spinner"></div>
     </div>
     <script src="robin-reader-script.js"></script>
 </body>

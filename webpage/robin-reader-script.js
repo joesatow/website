@@ -1,4 +1,13 @@
+function showSpinner() {
+  document.getElementById('spinner').style.display = 'block';
+}
+
+function hideSpinner() {
+  document.getElementById('spinner').style.display = 'none';
+}
+
 async function uploadFile() {
+  showSpinner()
   const file = document.getElementById('fileInput').files[0];
   if (!file) {
     console.log("No file selected.");
@@ -13,7 +22,7 @@ async function uploadFile() {
     const body = {
       csv_file_name: fileName
     }
-    const response = await fetch(`${url_test}`, {
+    const response = await fetch(`${url_prod}`, {
       method: "POST",
       redirect: "follow",
       body: JSON.stringify(body)
@@ -49,23 +58,24 @@ async function uploadFile() {
     console.error('Error:', error);
   }
 
-  // // create xlsx
-  // try {
-  //   const body = JSON.stringify({
-  //     "csv_file_name": fileName
-  //   });
+  // create xlsx
+  try {
+    const body = JSON.stringify({
+      "csv_file_name": fileName
+    });
 
-  //   const response = await fetch("https://3xqg7t9luh.execute-api.us-east-2.amazonaws.com/create", {
-  //     method: "POST",
-  //     body: body, // Directly put the file object here
-  //     headers: {
-  //       'Content-Type': 'application/json' // Adjust this if your S3 bucket expects a specific content type
-  //     },
-  //     redirect: 'follow'
-  //   });
-  //   const result = await response.text();
-  //   console.log(result)
-  // } catch (error) {
-  //   console.error('Error:', error);
-  // }
+    const response = await fetch("https://lulayd3e9i.execute-api.us-east-2.amazonaws.com/create", {
+      method: "POST",
+      body: body, // Directly put the file object here
+      headers: {
+        'Content-Type': 'application/json' // Adjust this if your S3 bucket expects a specific content type
+      },
+      redirect: 'follow'
+    });
+    const result = await response.text();
+    console.log(result)
+  } catch (error) {
+    console.error('Error:', error);
+  }
+  hideSpinner()
 }

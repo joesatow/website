@@ -5,6 +5,7 @@ from helper_funcs.contractDictFunctions import createNewDictEntry
 from helper_funcs.contractDictUpdate import getContractDictUpdate
 from helper_funcs.tradeListFunctions import getTradeDictUpdate
 from helper_funcs.outputFunctions import writeCSV
+from aws_jserver import generate_presigned_url_get
 import tempfile
 import os
 import json
@@ -40,7 +41,9 @@ def lambda_handler(event, context):
       tradeList.append(getTradeDictUpdate(currentContract, description, line['Process Date'])) # use process date to get buy date
       del contractDict[description]
 
-  upload_status = writeCSV(tradeList)
+  new_xlsx_object_name = csv_file_name.split(".csv")[0] + ".xlsx"
+  upload_status = writeCSV(tradeList, new_xlsx_object_name)
+  download_url = generate_presigned_url_get(os.environ['XLSX_BUCKET'], new_xlsx_object_name)
 
   return {
         "statusCode": 200,
@@ -51,7 +54,8 @@ def lambda_handler(event, context):
         "body": json.dumps({
             "message": "hello robin",
             "data": csv_file_name,
-            "upload_status:": str(upload_status)
+            "upload_status:": str(upload_status),
+            "download_url": download_url
         }),
     }
   

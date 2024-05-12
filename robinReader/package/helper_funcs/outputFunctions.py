@@ -1,11 +1,11 @@
 import pandas as pd
 import openpyxl as px
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from aws_jserver import upload_object_to_s3
+from io import BytesIO
+from aws_jserver import upload_fileobj_to_s3
 import os
 
-PATH = '/tmp/output.xlsx'
-def writeCSV(tradeList):
+def writeCSV(tradeList, object_name):
     df = pd.DataFrame(tradeList)
     
     # Rename headers
@@ -27,13 +27,20 @@ def writeCSV(tradeList):
         "Let Exp?"
     ]
 
-    writer = pd.ExcelWriter(PATH, engine='xlsxwriter')
-    df.to_excel(writer, sheet_name='welcome', index=False)
-    writer.close()
+    # Create a BytesIO object
+    output = BytesIO()
 
-    wb = px.load_workbook(PATH)
+    # Save the DataFrame to an Excel writer
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='welcome', index=False)
+        writer.close()
+
+    # Load the workbook from the BytesIO object
+    output.seek(0)
+    wb = px.load_workbook(output)
     ws = wb.active
 
+    # Create a table and apply styles as before
     tab = Table(displayName="Table1", ref=ws.dimensions)
     style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True, showColumnStripes=False)
     tab.tableStyleInfo = style
@@ -76,12 +83,16 @@ def writeCSV(tradeList):
         cell.number_format = number_format
 
     ws.add_table(tab)
-    wb.save(PATH)
+    
+    # Save workbook back to BytesIO object
+    output = BytesIO()
+    wb.save(output)
     wb.close()
-    file_size_bytes = os.path.getsize('/tmp/output.xlsx')
-    file_size_kb = file_size_bytes / 1024  # Convert bytes to kilobytes
 
-    print(f"File size: {file_size_kb:.2f} KB")
-    if upload_object_to_s3(PATH, os.environ['XLSX_BUCKET'], "output.xlsx"):
+    # Reset file pointer to the beginning after saving
+    output.seek(0)
+
+    # Upload the BytesIO object to S3
+    if upload_fileobj_to_s3(output, os.environ['XLSX_BUCKET'], object_name):
         return True
     return False

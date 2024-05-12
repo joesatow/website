@@ -47,14 +47,11 @@ def lambda_handler(event, context):
 
   return {
         "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*", # Required for CORS support to work
-            "Access-Control-Allow-Credentials": "true", # Required for cookies, authorization headers with HTTPS
-        },
+        # "headers": {
+        #     "Access-Control-Allow-Origin": "*", # Required for CORS support to work
+        #     "Access-Control-Allow-Credentials": "true", # Required for cookies, authorization headers with HTTPS
+        # },
         "body": json.dumps({
-            "message": "hello robin",
-            "data": csv_file_name,
-            "upload_status:": str(upload_status),
             "download_url": download_url
         }),
     }

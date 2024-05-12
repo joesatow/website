@@ -1,3 +1,14 @@
+const test = true
+let uplpoadUrl = '';
+let createUrl = '';
+if (test) {
+  uploadUrl = 'http://127.0.0.1:3000/upload';
+  createUrl = 'http://127.0.0.1:3000/create';
+} else {
+  uploadUrl = '';
+  createUrl = '';
+}
+
 function showSpinner() {
   document.getElementById('spinner').style.display = 'block';
 }
@@ -6,7 +17,7 @@ function hideSpinner() {
   document.getElementById('spinner').style.display = 'none';
 }
 
-async function uploadFile() {
+function start() {
   showSpinner()
   const file = document.getElementById('fileInput').files[0];
   if (!file) {
@@ -15,14 +26,20 @@ async function uploadFile() {
   }
   const fileName = file.name;
 
+  upload(file, fileName)
+  create_xlsx(fileName)  
+
+  hideSpinner()
+}
+
+async function upload(file, fileName){
+  
   // Request a pre-signed URL from your API
   try {
-    const url_test = 'http://192.168.118.134:3000/upload'
-    const url_prod = 'https://z3qah0v4y8.execute-api.us-east-2.amazonaws.com/upload'
     const body = {
       csv_file_name: fileName
     }
-    const response = await fetch(`${url_prod}`, {
+    const response = await fetch(`${uploadUrl}`, {
       method: "POST",
       redirect: "follow",
       body: JSON.stringify(body)
@@ -57,14 +74,15 @@ async function uploadFile() {
   } catch (error) {
     console.error('Error:', error);
   }
+}
 
-  // create xlsx
+async function create_xlsx(fileName){
   try {
     const body = JSON.stringify({
       "csv_file_name": fileName
     });
 
-    const response = await fetch("https://lulayd3e9i.execute-api.us-east-2.amazonaws.com/create", {
+    const response = await fetch(`${createUrl}`, {
       method: "POST",
       body: body, // Directly put the file object here
       headers: {
@@ -77,5 +95,4 @@ async function uploadFile() {
   } catch (error) {
     console.error('Error:', error);
   }
-  hideSpinner()
 }

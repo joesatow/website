@@ -15,10 +15,15 @@
             <h1>Robin Reader</h1> 
             <p>This tool takes the default .csv report file that Robinhood gives you and converts it into a more helpful file.  The main idea is to have actual trade data that shows profits and losses versus the plain transaction data that Robinhood provides.  I also made it prettier.</p>
         </div>
-        <div class="box">
+        <div class="robinreader-actionbox" id="robinreader-actionbox">
             <input type="file" id="fileInput" accept=".csv">
             <button onclick="start()">Upload File</button>
-            <div class="spinner" id="spinner"></div>
+            <div class="grid-container" id="grid-container">
+                <div class="box"><span>Uploading..................</span></div>
+                <div class="box"><div class="spinner" id="spinner1"></div></div>
+                <div class="box"><span>Creating new file.......</span></div>
+                <div class="box"><div class="spinner" id="spinner2"></div></div>
+            </div>
         </div>
     </div>
     <script src="scripts/robin-reader-script.js"></script>

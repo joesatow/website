@@ -9,16 +9,29 @@ if (test) {
   createUrl = '';
 }
 
-function showSpinner() {
-  document.getElementById('spinner').style.display = 'block';
+function showSpinner(id) {
+  if (id == 1) {
+    spinner_id = 'spinner1'
+  } else {
+    spinner_id = 'spinner2'
+  }
+  document.getElementById(spinner_id).style.display = 'block';
 }
 
-function hideSpinner() {
-  document.getElementById('spinner').style.display = 'none';
+function hideSpinner(id) {
+  if (id == 1) {
+    spinner_id = 'spinner1'
+  } else {
+    spinner_id = 'spinner2'
+  }
+  document.getElementById(spinner_id).style.display = 'none';
+}
+
+function showGrid() {
+  document.getElementById('grid-container').style.display = 'grid';
 }
 
 function start() {
-  showSpinner()
   const file = document.getElementById('fileInput').files[0];
   if (!file) {
     console.log("No file selected.");
@@ -26,14 +39,13 @@ function start() {
   }
   const fileName = file.name;
 
+  showGrid()
   upload(file, fileName)
   create_xlsx(fileName)  
-
-  hideSpinner()
 }
 
 async function upload(file, fileName){
-  
+  showSpinner(1)
   // Request a pre-signed URL from your API
   try {
     const body = {
@@ -74,9 +86,11 @@ async function upload(file, fileName){
   } catch (error) {
     console.error('Error:', error);
   }
+  hideSpinner(1)
 }
 
 async function create_xlsx(fileName){
+  showSpinner(2)
   try {
     const body = JSON.stringify({
       "csv_file_name": fileName
@@ -92,7 +106,10 @@ async function create_xlsx(fileName){
     });
     const result = await response.text();
     console.log(result)
+    download_link = JSON.parse(result).download_url
+    document.getElementById('robinreader-actionbox').innerHTML += `<a href="${download_link}"id="download-link">Download</a>`;
   } catch (error) {
     console.error('Error:', error);
   }
+  hideSpinner(2)
 }

@@ -9,29 +9,32 @@ if (test) {
   createUrl = '';
 }
 
+
+// document.getElementById('grid-container').style.display = 'grid';
+// showSpinner(1)
+// showSpinner(2)
+// //showCheckmark(1)
+
 function showSpinner(id) {
-  if (id == 1) {
-    spinner_id = 'spinner1'
-  } else {
-    spinner_id = 'spinner2'
-  }
+  const spinner_id = id === 1 ? 'spinner1' : 'spinner2';
   document.getElementById(spinner_id).style.display = 'block';
 }
 
 function hideSpinner(id) {
-  if (id == 1) {
-    spinner_id = 'spinner1'
-  } else {
-    spinner_id = 'spinner2'
-  }
+  const spinner_id = id === 1 ? 'spinner1' : 'spinner2';
   document.getElementById(spinner_id).style.display = 'none';
+}
+
+function showCheckmark(id) {
+  const checkmark_id = id === 1 ? 'statusBox1' : 'statusBox2';
+  document.getElementById(checkmark_id).innerHTML = `<div id="spinner${id}-success" class="checkmark" style="display: block;">✔️</div>`
 }
 
 function showGrid() {
   document.getElementById('grid-container').style.display = 'grid';
 }
 
-function start() {
+async function start() {
   const file = document.getElementById('fileInput').files[0];
   if (!file) {
     console.log("No file selected.");
@@ -40,8 +43,8 @@ function start() {
   const fileName = file.name;
 
   showGrid()
-  upload(file, fileName)
-  create_xlsx(fileName)  
+  await upload(file, fileName)
+  await create_xlsx(fileName) 
 }
 
 async function upload(file, fileName){
@@ -79,6 +82,7 @@ async function upload(file, fileName){
     });
 
     if (uploadResponse.ok) {
+      showCheckmark(1);
       console.log('File uploaded successfully.');
     } else {
       console.error('Failed to upload file.');
@@ -86,7 +90,7 @@ async function upload(file, fileName){
   } catch (error) {
     console.error('Error:', error);
   }
-  hideSpinner(1)
+  //hideSpinner(1)
 }
 
 async function create_xlsx(fileName){
@@ -105,11 +109,12 @@ async function create_xlsx(fileName){
       redirect: 'follow'
     });
     const result = await response.text();
+    showCheckmark(2);
     console.log(result)
     download_link = JSON.parse(result).download_url
     document.getElementById('robinreader-actionbox').innerHTML += `<a href="${download_link}"id="download-link">Download</a>`;
   } catch (error) {
     console.error('Error:', error);
   }
-  hideSpinner(2)
+  // hideSpinner(2)
 }

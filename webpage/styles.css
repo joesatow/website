@@ -51,6 +51,8 @@ h3 {
 
 input[type="file"] {
     padding: 10px 15px;
+    margin: 10px 0px;
+    width: 80%;
     color: #f2f2f2;
     background-color: #444;
     border: none;
@@ -90,6 +92,11 @@ button:hover {
     background-color: #888;
 }
 
+.checkmark {
+    font-size: px;
+    color: green;
+}
+
 .spinner {
     border: 3px solid rgba(0,0,0,0.3);
     border-radius: 50%;
@@ -109,13 +116,15 @@ button:hover {
     display: none;
     grid-template-columns: 1fr .25fr;
     grid-template-rows: auto;
-    gap: 5px;  /* Space between grid items */
-    align-items: center;
+    gap: 6px;  /* Space between grid items */
+    
 }
   
 .box {
     color: #333;
-    padding: 1px;
+    height: 30px; 
+    align-items: center;
+    align-content: center;
 }
 
 .navbar {
@@ -171,5 +180,5 @@ button:hover {
 }
 
 #download-link {
-    padding: 20px 0px 5px 0px;
+    padding: 10px 0px 5px 0px;
 }

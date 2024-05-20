@@ -67,17 +67,7 @@ Resources:
       ManagedPolicyArns:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
-  CsvUploadApi:
-    Type: AWS::Serverless::HttpApi
-    Properties:
-      CorsConfiguration:
-        AllowOrigins:
-        - '*'
-        AllowMethods:
-        - POST
-        AllowHeaders:
-        - '*'
-  CreateXlsxApi:
+  ChartStampApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       CorsConfiguration:
@@ -105,7 +95,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: CsvUploadApi
+              Ref: ChartStampApi
             Path: /upload
             Method: post
     Metadata:
@@ -131,7 +121,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId:
-              Ref: CreateXlsxApi
+              Ref: ChartStampApi
             Path: /create
             Method: post
     Metadata:
@@ -140,8 +130,8 @@ Outputs:
   UploadCsvApiEndpoint:
     Description: API endpoint URL for uploading CSV
     Value:
-      Fn::Sub: https://${CsvUploadApi}.execute-api.${AWS::Region}.amazonaws.com/upload
+      Fn::Sub: https://${ChartStampApi}.execute-api.${AWS::Region}.amazonaws.com/upload
   CreateXlsxApiEndpoint:
     Description: Endpoint URL for creating XLSX
     Value:
-      Fn::Sub: https://${CreateXlsxApi}.execute-api.${AWS::Region}.amazonaws.com/create
+      Fn::Sub: https://${ChartStampApi}.execute-api.${AWS::Region}.amazonaws.com/create

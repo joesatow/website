@@ -1,19 +1,21 @@
-const test = true
 let uplpoadUrl = '';
 let createUrl = '';
+let prod_base_url = 'https://8yp72j081a.execute-api.us-east-2.amazonaws.com'
+
+const test = true
 if (test) {
   uploadUrl = 'http://127.0.0.1:3000/upload';
   createUrl = 'http://127.0.0.1:3000/create';
 } else {
-  uploadUrl = '';
-  createUrl = '';
+  uploadUrl = `${prod_base_url}/upload`;
+  createUrl = `${prod_base_url}/create`;
 }
 
-
-// document.getElementById('grid-container').style.display = 'grid';
-// showSpinner(1)
-// showSpinner(2)
-// //showCheckmark(1)
+function handleClick() {
+  const button = document.getElementById('start-button');
+  button.disabled = true;
+  button.classList.add('disabled');
+}
 
 function showSpinner(id) {
   const spinner_id = id === 1 ? 'spinner1' : 'spinner2';
@@ -27,29 +29,37 @@ function hideSpinner(id) {
 
 function showCheckmark(id) {
   const checkmark_id = id === 1 ? 'statusBox1' : 'statusBox2';
-  document.getElementById(checkmark_id).innerHTML = `<div id="spinner${id}-success" class="checkmark" style="display: block;">✔️</div>`
+  document.getElementById(checkmark_id).innerHTML = `<div id="spinner${id}-success" class="checkmark">✔️</div>`
 }
 
 function showGrid() {
   document.getElementById('grid-container').style.display = 'grid';
 }
 
-async function start() {
-  const file = document.getElementById('fileInput').files[0];
-  if (!file) {
-    console.log("No file selected.");
-    return;
-  }
-  const fileName = file.name;
+document.getElementById("uploadForm").addEventListener("submit", start);
+async function start(event) {
+  event.preventDefault();
 
-  showGrid()
-  await upload(file, fileName)
-  await create_xlsx(fileName) 
+  const file_input = document.getElementById('fileInput');
+  const file = file_input.files[0];
+  const fileName = file.name;
+  const allowedExtensions = /(\.csv)$/i;
+
+  if (!allowedExtensions.exec(fileName)) {
+      alert('Please upload a file with a .csv extension.');
+      fileInput.value = '';
+      return;
+  }
+  
+  handleClick();
+  showGrid();
+  await upload(file, fileName);
+  await create_xlsx(fileName);
 }
 
-async function upload(file, fileName){
+async function upload(file, fileName) {
   showSpinner(1)
-  // Request a pre-signed URL from your API
+
   try {
     const body = {
       csv_file_name: fileName
@@ -59,12 +69,12 @@ async function upload(file, fileName){
       redirect: "follow",
       body: JSON.stringify(body)
     });
-    
+
     const result = await response.text();
     const presignedUrl = JSON.parse(result); // Ensure this variable correctly extracts the URL from the response
-
-    url = presignedUrl.url
-    fields = presignedUrl.fields
+    
+    url = presignedUrl.url;
+    fields = presignedUrl.fields;
 
     const formData = new FormData();
 
@@ -90,11 +100,10 @@ async function upload(file, fileName){
   } catch (error) {
     console.error('Error:', error);
   }
-  //hideSpinner(1)
 }
 
-async function create_xlsx(fileName){
-  showSpinner(2)
+async function create_xlsx(fileName) {
+  showSpinner(2);
   try {
     const body = JSON.stringify({
       "csv_file_name": fileName
@@ -110,9 +119,11 @@ async function create_xlsx(fileName){
     });
     const result = await response.text();
     showCheckmark(2);
-    console.log(result)
+    
     download_link = JSON.parse(result).download_url
-    document.getElementById('robinreader-actionbox').innerHTML += `<a href="${download_link}"id="download-link">Download</a>`;
+    const html_download_link = document.getElementById('download-link');
+    html_download_link.innerHTML = `<a href="${download_link}">Download</a>`;
+    html_download_link.style.display = 'block';
   } catch (error) {
     console.error('Error:', error);
   }

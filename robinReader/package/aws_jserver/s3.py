@@ -86,6 +86,12 @@ def generate_presigned_url_post(bucket_name, object_name, expiration=3600):
         response = s3_client.generate_presigned_post(
                                                     bucket_name,
                                                     object_name,
+                                                    Fields={
+                                                        "Content-Type": "text/csv"
+                                                    },
+                                                    Conditions=[
+                                                        {"Content-Type": "text/csv"}
+                                                    ],
                                                     ExpiresIn=expiration)  # Expires in 1 hour
 
         return response

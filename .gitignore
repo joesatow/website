@@ -1,1 +1,2 @@
 syncToS3
+.aws-sam/*

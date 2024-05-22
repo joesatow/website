@@ -32,7 +32,7 @@ def writeCSV(tradeList, object_name):
 
     # Save the DataFrame to an Excel writer
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='welcome', index=False)
+        df.to_excel(writer, sheet_name='Output', index=False)
         writer.close()
 
     # Load the workbook from the BytesIO object

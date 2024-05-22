@@ -4,8 +4,8 @@ let prod_base_url = 'https://8yp72j081a.execute-api.us-east-2.amazonaws.com'
 
 const test = true
 if (test) {
-  uploadUrl = 'http://127.0.0.1:3000/upload';
-  createUrl = 'http://127.0.0.1:3000/create';
+  uploadUrl = 'http://192.168.118.134:3000/upload';
+  createUrl = 'http://192.168.118.134:3000/create';
 } else {
   uploadUrl = `${prod_base_url}/upload`;
   createUrl = `${prod_base_url}/create`;
@@ -14,7 +14,6 @@ if (test) {
 function handleClick() {
   const button = document.getElementById('start-button');
   button.disabled = true;
-  button.classList.add('disabled');
 }
 
 function showSpinner(id) {
@@ -30,6 +29,11 @@ function hideSpinner(id) {
 function showCheckmark(id) {
   const checkmark_id = id === 1 ? 'statusBox1' : 'statusBox2';
   document.getElementById(checkmark_id).innerHTML = `<div id="spinner${id}-success" class="checkmark">✔️</div>`
+}
+
+function showXmark(id) {
+  const checkmark_id = id === 1 ? 'statusBox1' : 'statusBox2';
+  document.getElementById(checkmark_id).innerHTML = `<div id="spinner${id}-error" class="error-mark">❌</div>`
 }
 
 function showGrid() {
@@ -53,29 +57,43 @@ async function start(event) {
   
   handleClick();
   showGrid();
-  await upload(file, fileName);
-  await create_xlsx(fileName);
+  try {
+    await upload(file, fileName);
+    //await create_xlsx(fileName);
+  } catch (error) {
+    return;
+  }
 }
 
 async function upload(file, fileName) {
   showSpinner(1)
 
   try {
+    // get presigned upload url
     const body = {
       csv_file_name: fileName
     }
+
     const response = await fetch(`${uploadUrl}`, {
       method: "POST",
       redirect: "follow",
       body: JSON.stringify(body)
     });
 
+    if (response.ok) {
+      console.log('upload lambda function (get presigned url) successful');
+    } else {
+      showDownloadBarStatus(2)
+      throw new Error("upload lambda function (get presigned url) failed")
+    }
+
     const result = await response.text();
-    const presignedUrl = JSON.parse(result); // Ensure this variable correctly extracts the URL from the response
+    const presignedUrl = JSON.parse(result); 
     
     url = presignedUrl.url;
     fields = presignedUrl.fields;
 
+    //upload file using presigned url
     const formData = new FormData();
 
     for (const key in fields) {
@@ -90,15 +108,19 @@ async function upload(file, fileName) {
       method: "POST",
       body: formData
     });
-
+    
     if (uploadResponse.ok) {
       showCheckmark(1);
-      console.log('File uploaded successfully.');
+      console.log('File uploaded successfully using presigned url.');
     } else {
-      console.error('Failed to upload file.');
+      showDownloadBarStatus(2)
+      throw new Error("Failed to upload file using presigned url")
     }
   } catch (error) {
-    console.error('Error:', error);
+    showXmark(1);
+    showXmark(2);
+    console.error("main catch block in upload(): " + error);
+    //throw error;
   }
 }
 
@@ -117,15 +139,42 @@ async function create_xlsx(fileName) {
       },
       redirect: 'follow'
     });
-    const result = await response.text();
-    showCheckmark(2);
     
+    if (response.ok) {
+      showCheckmark(2);
+      console.log('File created successfully.');
+    } else {
+      showDownloadBarStatus(3)
+      throw new Error("Error creating xlsx")
+    }
+
+    const result = await response.text();
     download_link = JSON.parse(result).download_url
-    const html_download_link = document.getElementById('download-link');
-    html_download_link.innerHTML = `<a href="${download_link}">Download</a>`;
-    html_download_link.style.display = 'block';
+    showDownloadBarStatus(1,download_link);
   } catch (error) {
-    console.error('Error:', error);
+    showXmark(2);
+    console.error(error);
+    //throw error;
   }
-  // hideSpinner(2)
+}
+
+function showDownloadBarStatus(option, download_link=null) {
+  // 1 = success, show download link
+  // 2 = upload lambda function (get presigned url) failed 
+  // 3 = create xlsx failed
+  const html_download_link = document.getElementById('download-link');
+  
+  switch (option){
+    case 1:
+      html_download_link.innerHTML = `<a href="${download_link}">Download</a>`;
+      break;
+    case 2:
+      html_download_link.innerHTML = `<span>Upload failed. Please try again</span>`;
+      break;
+    case 3:
+      html_download_link.innerHTML = `<span>Create failed. Please try again</span>`;
+      break;
+  }
+  
+  html_download_link.style.display = 'block';
 }

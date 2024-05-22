@@ -98,10 +98,21 @@ button:hover {
     background-color: #888;
 }
 
+button:disabled {
+    background-color: lightgray;
+    pointer-events: none;
+}
+
 .checkmark {
     display: block;
-    font-size: px;
+    font-size: 20px;
     color: green;
+}
+
+.error-mark {
+    display: block;
+    font-size: 18px;
+    color: red;
 }
 
 .spinner {
@@ -121,10 +132,9 @@ button:hover {
 
 .grid-container {
     display: none;
-    grid-template-columns: 1fr .25fr;
+    grid-template-columns: 1fr .001fr;
     grid-template-rows: auto;
     gap: 6px;  /* Space between grid items */
-    
 }
   
 .box {
@@ -191,7 +201,7 @@ button:hover {
     padding: 10px 0px 5px 0px;
 }
 
-.disabled {
-    background-color: lightgray;
-    cursor: not-allowed;
+#download-link span {
+    color: #333;
+    font-size: 16px;
 }

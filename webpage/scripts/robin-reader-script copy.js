@@ -65,7 +65,7 @@ async function start(event) {
     disableButton();
     showGrid();
     await upload(file, fileName);
-    //await create_xlsx(fileName);
+    await create_xlsx(fileName);
   } catch (error) {
     return;
   }
@@ -75,44 +75,56 @@ async function upload(file, fileName) {
   showSpinner(1)
 
   try {
-    const reader = new FileReader();
+    // get presigned upload url
+    const body = {
+      csv_file_name: fileName
+    }
 
-    reader.onload = async function(event) {
-        const csvContent = event.target.result;
-        const encodedContent = btoa(csvContent); // Encode content in base64
+    const response = await fetch(`${uploadUrl}`, {
+      method: "POST",
+      redirect: "follow",
+      body: JSON.stringify(body)
+    });
 
-        const body = {
-          csv_file_name: fileName
-        }
-    
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          redirect: "follow",
-          body: JSON.stringify(body)
-        });
-        // const response = await fetch(uploadUrl, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json'
-        //     },
-        //     body: JSON.stringify({
-        //         body: encodedContent,
-        //         isBase64Encoded: true
-        //     })
-        // });
-
-        const result = await response.json();
-        return result
-    };
-
-    result = await reader.readAsText(file);
-    console.log("result: " + result.text);
-
-    if (result) {
+    if (response.ok) {
       console.log('upload lambda function (get presigned url) successful');
     } else {
       showDownloadBarStatus(2)
       throw new Error("upload lambda function (get presigned url) failed: " + await response.text())
+    }
+
+    const result = await response.text();
+    const presignedUrl = JSON.parse(result); 
+    
+    url = presignedUrl.url;
+    fields = presignedUrl.fields;
+
+    //upload file using presigned url
+    const formData = new FormData();
+
+    for (const key in fields) {
+      formData.append(key, fields[key]);
+    }
+
+    // Append file to formData - assuming 'file' is the key for your file
+    formData.append('file', file);
+
+    // Use the pre-signed URL to upload the file
+    const uploadResponse = await fetch(url, {
+      method: "POST",
+      body: formData
+    });
+    
+    if (uploadResponse.ok) {
+      showCheckmark(1);
+      console.log('File uploaded successfully using presigned url.');
+    } else {
+      const errorText = await uploadResponse.text();
+      if (errorText.includes("<Code>EntityTooLarge</Code>")) {
+        handleFileSizeTooBig();
+      }
+      showDownloadBarStatus(2)
+      throw new Error("Failed to upload file using presigned url: " + errorText);
     }
   } catch (error) {
     showXmark(1);

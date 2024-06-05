@@ -90,7 +90,8 @@ def generate_presigned_url_post(bucket_name, object_name, expiration=3600):
                                                         "Content-Type": "text/csv"
                                                     },
                                                     Conditions=[
-                                                        {"Content-Type": "text/csv"}
+                                                        {"Content-Type": "text/csv"},
+                                                        ["content-length-range", 0, 2097152] # 0-2mb limit, in bytes binary
                                                     ],
                                                     ExpiresIn=expiration)  # Expires in 1 hour
 

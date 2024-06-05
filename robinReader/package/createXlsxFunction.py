@@ -49,8 +49,7 @@ def lambda_handler(event, context):
     return {
           "statusCode": 200,
           "headers": {
-              "Access-Control-Allow-Origin": "*", # Required for CORS support to work
-              "Access-Control-Allow-Credentials": "true", # Required for cookies, authorization headers with HTTPS
+            "Content-Type": "application/json"
           },
           "body": json.dumps({
               "download_url": download_url
@@ -59,9 +58,8 @@ def lambda_handler(event, context):
   except Exception as e:
         return {
             'statusCode': 500,
-            'headers': {
-                "Access-Control-Allow-Origin": "*", # Required for CORS support to work
-                "Access-Control-Allow-Credentials": "true", # Required for cookies, authorization headers with HTTPS
+            "headers": {
+              "Content-Type": "application/json"
             },
             'body': json.dumps({'error': str(e)})
         }

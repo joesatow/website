@@ -10,6 +10,7 @@ body, html {
     display: flex;
     flex-direction: column;
     margin-top: 3%;
+    padding-bottom: 3%;
     align-items: center;
 }
 
@@ -204,4 +205,12 @@ button:disabled {
 #download-link span {
     color: #333;
     font-size: 16px;
+}
+
+#other-error-info {
+    display: none;
+    padding: 10px 0px 0px 0px;
+    color: #333;
+    width: 90%;
+    text-align: center;
 }

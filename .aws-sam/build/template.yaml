@@ -15,7 +15,6 @@ Resources:
         - AllowedOrigins:
           - '*'
           AllowedMethods:
-          - GET
           - POST
           AllowedHeaders:
           - '*'
@@ -23,15 +22,6 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: robin-finished-xlsx
-      CorsConfiguration:
-        CorsRules:
-        - AllowedOrigins:
-          - '*'
-          AllowedMethods:
-          - GET
-          - POST
-          AllowedHeaders:
-          - '*'
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -72,7 +62,8 @@ Resources:
     Properties:
       CorsConfiguration:
         AllowOrigins:
-        - '*'
+        - https://mktanon.com
+        - http://127.0.0.1:5500
         AllowMethods:
         - POST
         AllowHeaders:
@@ -83,9 +74,12 @@ Resources:
       CodeUri: UploadCsvFunction
       Handler: uploadCsvFunction.lambda_handler
       Runtime: python3.10
+      Layers:
+      - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
       Environment:
         Variables:
           CSV_BUCKET: robin-csv-upload
+          XLSX_BUCKET: robin-finished-xlsx
       Role:
         Fn::GetAtt:
         - MktAnonSiteFunctionRole

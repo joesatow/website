@@ -9,14 +9,18 @@ from aws_jserver import generate_presigned_url_get
 import tempfile
 import os
 import json
+import base64
 
 def lambda_handler(event, context):
   try:
-    event_body = json.loads(event['body'])
-    csv_file_name = "72f0aba9-6281-5007-acf2-d720dfe3a54c.csv"
+    body = json.loads(event['body'])
+    
+    csv_file_name = body['csv_file_name']
+    csv_content = body['csv_content']
+    csv_content = base64.b64decode(csv_content).decode('utf-8')
     
     # Get account activity list
-    accountActivityList = getData(csv_file_name) 
+    accountActivityList = getData(csv_content) 
 
     # Filter data
     accountActivityList = filterData(accountActivityList)
@@ -44,23 +48,34 @@ def lambda_handler(event, context):
 
     new_xlsx_object_name = csv_file_name.split(".csv")[0] + ".xlsx"
     upload_status = writeCSV(tradeList, new_xlsx_object_name)
+    output = writeCSV(tradeList, new_xlsx_object_name)
+    encoded_content = base64.b64encode(output.getvalue()).decode()
     download_url = generate_presigned_url_get(os.environ['XLSX_BUCKET'], new_xlsx_object_name)
     
+    # return {
+    #   "statusCode": 200,
+    #   "headers": {
+    #     "Content-Type": "application/json",
+    #   },
+    #   "body": json.dumps({
+    #       "download_url": download_url,
+    #   }),
+    # }
     return {
-          "statusCode": 200,
-          "headers": {
-            "Content-Type": "application/json"
-          },
-          "body": json.dumps({
-              "download_url": download_url
-          }),
-      }
+        'statusCode': 200,
+        'headers': {
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': 'attachment; filename="modified_file.txt"'
+        },
+        'body': encoded_content,
+        'isBase64Encoded': True
+    }
   except Exception as e:
-        return {
-            'statusCode': 500,
-            "headers": {
-              "Content-Type": "application/json"
-            },
-            'body': json.dumps({'error': str(e)})
-        }
+    return {
+        'statusCode': 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        'body': json.dumps({'error': str(e)})
+    }
   

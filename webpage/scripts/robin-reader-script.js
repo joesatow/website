@@ -78,19 +78,51 @@ async function upload(file, fileName) {
     const reader = new FileReader();
 
     reader.onload = async function(event) {
-        const csvContent = event.target.result;
-        const encodedContent = btoa(csvContent); // Encode content in base64
+      const csvContent = event.target.result;
+      const encodedContent = btoa(csvContent); // Encode content in base64
 
-        const body = {
-          csv_file_name: fileName
-        }
-    
-        const response = await fetch(uploadUrl, {
-          method: "POST",
-          redirect: "follow",
-          body: JSON.stringify(body)
-        });
-        // const response = await fetch(uploadUrl, {
+      const body = {
+        csv_file_name: fileName,
+        csv_content: encodedContent // Add encoded content to the body
+      }
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        redirect: "follow",
+        body: JSON.stringify(body)
+      });
+
+      //const result = await response.json();
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      download_link = url;
+      showDownloadBarStatus(1,download_link);
+
+      // if (response.ok) {
+      //   console.log('upload lambda function (get presigned url) successful');
+      //   console.log(result)
+      //   return result;
+      // } else {
+      //   showDownloadBarStatus(2)
+      //   throw new Error("upload lambda function (get presigned url) failed: " + JSON.stringify(result));
+      // }
+    };
+
+    reader.readAsText(file);
+
+  } catch (error) {
+    showXmark(1);
+    showXmark(2);
+    console.error("main catch block in upload(): " + error);
+    //throw error;
+  }
+}
+
+// const response = await fetch(uploadUrl, {
         //     method: 'POST',
         //     headers: {
         //         'Content-Type': 'application/json'
@@ -100,27 +132,6 @@ async function upload(file, fileName) {
         //         isBase64Encoded: true
         //     })
         // });
-
-        const result = await response.json();
-        return result
-    };
-
-    result = await reader.readAsText(file);
-    console.log("result: " + result.text);
-
-    if (result) {
-      console.log('upload lambda function (get presigned url) successful');
-    } else {
-      showDownloadBarStatus(2)
-      throw new Error("upload lambda function (get presigned url) failed: " + await response.text())
-    }
-  } catch (error) {
-    showXmark(1);
-    showXmark(2);
-    console.error("main catch block in upload(): " + error);
-    //throw error;
-  }
-}
 
 async function create_xlsx(fileName) {
   showSpinner(2);

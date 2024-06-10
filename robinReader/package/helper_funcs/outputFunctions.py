@@ -92,8 +92,4 @@ def writeCSV(tradeList, object_name):
     # Reset file pointer to the beginning after saving
     output.seek(0)
 
-    # # Upload the BytesIO object to S3
-    # if upload_fileobj_to_s3(output, os.environ['XLSX_BUCKET'], object_name):
-    #     return True
-    # return False
     return output

@@ -6,8 +6,6 @@ const test = true
 if (test) {
   uploadUrl = 'http://127.0.0.1:3000/upload';
   createUrl = 'http://127.0.0.1:3000/create';
-  uploadUrl = 'http://192.168.118.134:3000/upload';
-  createUrl = 'http://192.168.118.134:3000/create';
 } else {
   uploadUrl = `${prod_base_url}/upload`;
   createUrl = `${prod_base_url}/create`;
@@ -47,7 +45,7 @@ async function start(event) {
     // validate file extension
     if (!allowedExtensions.exec(fileName)) {
       alert('Please upload a file with a .csv extension.');
-      file_input.value = '';
+      fileInput.value = '';
       throw new Error("wrong extension");
     }
     
@@ -64,67 +62,88 @@ async function start(event) {
   }
 }
 
-function readFile(file) {
-  return new Promise((resolve, reject) => {
-      var reader = new FileReader();
-
-      reader.onload = function(event) {
-          var csvContent = event.target.result;
-          resolve(csvContent);
-      };
-
-      reader.onerror = function(event) {
-          reject(new Error("File could not be read! Code " + event.target.error.code));
-      };
-
-      try {
-        reader.readAsText(file);
-      } catch (error) {
-        reject(new Error("error before reading file: " + error))
-      }
-      
-  });
-}
-
 async function create(file, fileName) {
-  showSpinner();
+  showSpinner()
 
   try {
-    const result = await readFile(file);
-    const encodedContent = btoa(result); // Encode content in base64
+    const reader = new FileReader();
+  
+    reader.onload = async function(event) {
+      const csvContent = event.target.result;
+      const encodedContent = btoa(csvContent); // Encode content in base64
 
-    const body = {
-      csv_file_name: fileName,
-      csv_content: encodedContent // Add encoded content to the body
-    }
+      const body = {
+          csv_file_name: fileName,
+          csv_content: encodedContent // Add encoded content to the body
+      }
+      
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        redirect: "follow",
+        body: JSON.stringify(body)
+      }
 
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      redirect: "follow",
-      body: JSON.stringify(body)
-    });
-
-    if (response.ok) {
-      const blob = await response.blob();
-      const download_link = window.URL.createObjectURL(blob);
-      const newFilename = fileName.replace(".csv", ".xlsx");
-      showCheckmark()
-      showDownloadBarStatus(1, download_link, newFilename);
-      console.log('create new xlsx file successful');
-    } else {
-      showDownloadBarStatus(2)
-      throw new Error("error: create new xlsx file failed: " + await response.text());
-    }
-
+      const response = await fetch(uploadUrl, requestOptions);
+    };
+    
+    await reader.readAsText(file);
+    
   } catch (error) {
     showXmark();
-    console.error("error caught: " + error.message)
+    console.error("main catch block in create(): " + error);
   }
-
 }
+
+
+// async function create(file, fileName) {
+//   showSpinner()
+
+//   try {
+//     const reader = new FileReader();
+
+//     reader.onload = async function(event) {
+//       try {
+//         const csvContent = event.target.result;
+//         const encodedContent = btoa(csvContent); // Encode content in base64
+  
+//         const body = {
+//           csv_file_name: fileName,
+//           csv_content: encodedContent // Add encoded content to the body
+//         }
+  
+//         const response = await fetch(uploadUrl, {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json"
+//           },
+//           redirect: "follow",
+//           body: JSON.stringify(body)
+//         });
+  
+//         if (response.ok) {
+//           const blob = await response.blob();
+//           const download_link = window.URL.createObjectURL(blob);
+//           const newFilename = fileName.replace(".csv", ".xlsx");
+//           showCheckmark()
+//           showDownloadBarStatus(1, download_link, newFilename);
+//           console.log('create new xlsx file successful');
+//         } else {
+//           showDownloadBarStatus(2)
+//           throw new Error("error: create new xlsx file failed: " + await response.text());
+//         }
+//       } catch (error) {
+//         throw new Error("nested reader error")
+//       }
+//     };
+//     reader.readAsText(file);
+//   } catch (error) {
+//     showXmark();
+//     console.error("main catch block in create(): " + error);
+//   }
+// }
 
 function showDownloadBarStatus(option, download_link, newFilename) {
   // 1 = success, show download link

@@ -50,17 +50,7 @@ def lambda_handler(event, context):
     upload_status = writeCSV(tradeList, new_xlsx_object_name)
     output = writeCSV(tradeList, new_xlsx_object_name)
     encoded_content = base64.b64encode(output.getvalue()).decode()
-    download_url = generate_presigned_url_get(os.environ['XLSX_BUCKET'], new_xlsx_object_name)
-    
-    # return {
-    #   "statusCode": 200,
-    #   "headers": {
-    #     "Content-Type": "application/json",
-    #   },
-    #   "body": json.dumps({
-    #       "download_url": download_url,
-    #   }),
-    # }
+    raise Exception("exception happened.")
     return {
         'statusCode': 200,
         'headers': {
@@ -76,6 +66,6 @@ def lambda_handler(event, context):
         "headers": {
           "Content-Type": "application/json"
         },
-        'body': json.dumps({'error': str(e)})
+        'body': json.dumps({'peen error': str(e)})
     }
   

@@ -45,7 +45,7 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - "https://mktanon.com"
-          - "http://127.0.0.1:5503"
+          - "http://127.0.0.1:5505"
         AllowMethods:
           - "POST"
         AllowHeaders:

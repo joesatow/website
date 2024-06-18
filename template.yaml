@@ -4,14 +4,320 @@ Description: 'mktanon site'
 
 Globals:
   Function:
-    Timeout: 10
-    MemorySize: 128
+    Timeout: 30
+    MemorySize: 1024
+
+Parameters:
+  RotateInterval:
+    Default: "7"
+    Description: Rotation interval in days for origin secret value.
+    Type: Number
+    MinValue: "1"
+  LogRetention:
+    Default: "30"
+    Description: Log retention period for HTTP API access logs
+    Type: Number
+    MinValue: "1"
 
 Resources:
-  RobinReaderFinishedXlsxBucket:
-    Type: AWS::S3::Bucket
+  # Sample Lambda function. This should be replaced with the application that is integrated with API Gateway
+  sampleWebsiteLambdaFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      BucketName: robin-finished-xlsx
+        Description: "Sample Hello World Lambda"
+        Runtime: python3.10
+        CodeUri: robinReader/api_auth
+        Handler: sample_function.lambda_handler
+        Role: !GetAtt sampleWebsiteLambdaFunctionRole.Arn    
+
+  # IAM Role for Sample Website Lambda Function
+  sampleWebsiteLambdaFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - lambda.amazonaws.com
+            Action:
+            - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: "SampleWebsiteLambdaPolicy"
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+              - logs:CreateLogStream
+              - logs:CreateLogGroup
+            Resource: !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*'
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents 
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*:log-stream:*'    
+          
+  # Secret to store custom header
+  OriginVerifySecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: OriginVerifySecret
+      GenerateSecretString:
+        SecretStringTemplate: '{"HEADERVALUE": "RandomPassword"}'
+        GenerateStringKey: "HEADERVALUE"
+        ExcludePunctuation: true
+
+  # Permission for Secrets Manager to invoke secret rotation Lambda function
+  RotateFunctionInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OriginSecretRotateFunction
+      Action: lambda:InvokeFunction
+      Principal: 'secretsmanager.amazonaws.com'
+
+  # Enabling Secret Rotation
+  OriginVerifyRotateSchedule:
+    Type: AWS::SecretsManager::RotationSchedule
+    Properties: 
+      RotationLambdaARN: !GetAtt OriginSecretRotateFunction.Arn
+      RotationRules: 
+        AutomaticallyAfterDays: !Ref RotateInterval
+      SecretId: !Ref OriginVerifySecret
+
+  # IAM Role for the Origin Secret Rotation Lambda Function. Permissions for Secrets Manager and CloudFront are needed
+  OriginSecretRotateExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: OriginVerifyRotatePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+              - logs:CreateLogStream
+              - logs:CreateLogGroup
+            Resource: !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*'
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents 
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*:log-stream:*'
+    
+          # Lambda needs the following permissions to be able to get secret and rotate it
+          - Effect: Allow
+            Action:
+            - secretsmanager:DescribeSecret
+            - secretsmanager:GetSecretValue
+            - secretsmanager:PutSecretValue
+            - secretsmanager:UpdateSecretVersionStage
+            Resource: !Ref OriginVerifySecret
+
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetRandomPassword
+            Resource: '*'
+
+          # Lambda needs cloudfront permissions as it will update the origin for API Gateway with the rotated secret value
+          - Effect: Allow
+            Action:
+            - cloudfront:GetDistribution
+            - cloudfront:GetDistributionConfig
+            - cloudfront:ListDistributions
+            - cloudfront:UpdateDistribution
+            Resource: !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${cloudFrontDistribution}'
+
+  OriginSecretRotateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Secrets Manager Rotation Lambda
+      Handler: originSecretRotateFunction.lambda_handler
+      CodeUri: robinReader/api_auth
+      Runtime: python3.10
+      Environment:
+        Variables:
+          CFDISTROID: !Ref cloudFrontDistribution
+          HEADERNAME: "x-origin-verify"
+          ORIGINURL: !Sub "https://${apiGateway}.execute-api.${AWS::Region}.amazonaws.com"
+      Role: !GetAtt OriginSecretRotateExecutionRole.Arn
+
+  # This Lambda function is used to authorize the requests sent to API Gateway. It check the value of custom header x-origin-verify.
+  # The request is authorized if the value matches the value stored in the Secret Manager
+  authorizerLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: "Authorizer Lambda Function"
+      Runtime: python3.10
+      # Timeout has to be atleast 30 sec
+      Timeout: 900
+      CodeUri: robinReader/api_auth
+      Handler: authorizerFunction.lambda_handler
+      Role: !GetAtt authorizerLambdaFunctionRole.Arn
+  
+  # IAM Role for the authorizer Lambda function. Authorizer Lambda should be able to get secret from the origin verify secret. 
+  authorizerLambdaFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      # Rolename will be randomly generated in CDK
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: 
+            - lambda.amazonaws.com
+          Action: 
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: AuthorizerRolePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+              - logs:CreateLogStream
+              - logs:CreateLogGroup
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*'
+          
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents 
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:logs:*:${AWS::AccountId}:log-group:*:log-stream:*'
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue
+            Resource: 
+              - !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:OriginVerifySecret-*'
+  
+  apiGateway:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      ProtocolType: HTTP  
+      Name: APIGateway
+  
+  apiGwRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties: 
+      ApiId: !Ref apiGateway
+      RouteKey: 'GET /'
+      AuthorizationType: 'CUSTOM'
+      AuthorizerId: !Ref apiGwAuthorizer
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref apiGwIntegration
+
+  apiGwIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties: 
+      ApiId: !Ref apiGateway
+      IntegrationType: AWS_PROXY
+      IntegrationMethod: "POST"
+      IntegrationUri: !Sub
+          - arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn: !GetAtt sampleWebsiteLambdaFunction.Arn
+      PayloadFormatVersion: '2.0'
+
+  apiGwStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: $default
+      AutoDeploy: true
+      ApiId: !Ref apiGateway
+      AccessLogSettings:
+        DestinationArn: !GetAtt apiLogGroup.Arn
+        Format: >-
+          {"requestId":"$context.requestId", "ip": "$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","routeKey":"$context.routeKey","status":"$context.status"}
+
+  apiGwAuthorizer:
+    Type: 'AWS::ApiGatewayV2::Authorizer'
+    Properties:                
+      Name: LambdaAuthorizer
+      ApiId: !Ref apiGateway
+      AuthorizerType: REQUEST
+      EnableSimpleResponses: true
+      AuthorizerPayloadFormatVersion: '2.0'
+      AuthorizerUri:
+        'Fn::Sub': >-
+          arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${authorizerLambda.Arn}/invocations
+      # Identity Source will check if x-origin-verify header is present. If not, the response will be 403: forbidden and authorizer lambda will not be triggerd.
+      # If x-origin-verify is present authorizerLambda will be triggered which will compare the value of this header with the secret
+      IdentitySource: 
+        - '$request.header.x-origin-verify' 
+  
+  authorizerLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref authorizerLambda
+      SourceArn:
+        'Fn::Sub':
+          - >-
+            arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${__ApiId__}/${__Stage__}/*
+          - __Stage__: '*'
+            __ApiId__:
+              Ref: apiGateway
+
+  sampleWebsiteLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+      FunctionName: !Ref sampleWebsiteLambdaFunction
+      SourceArn:
+        'Fn::Sub':
+          - >-
+            arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${__ApiId__}/${__Stage__}/*
+          - __Stage__: '*'
+            __ApiId__:
+              Ref: apiGateway
+
+  apiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties: 
+      LogGroupName: 'HTTPApiAccessLogs'
+      RetentionInDays: !Ref LogRetention
+
+  cloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig: 
+        Origins:
+          - Id: apiGwOrigin
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: 
+                - TLSv1.2
+            DomainName: !Sub '${apiGateway}.execute-api.${AWS::Region}.amazonaws.com'
+            OriginCustomHeaders: 
+              - HeaderName: 'x-origin-verify'
+                HeaderValue: !Join ['', ['{{resolve:secretsmanager:', !Ref OriginVerifySecret, ':SecretString:HEADERVALUE}}' ]]
+        Enabled: true
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: apiGwOrigin
+          ViewerProtocolPolicy: "redirect-to-https"
+          ForwardedValues:
+            QueryString: 'false'
+
 
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
@@ -24,17 +330,6 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action: sts:AssumeRole
-      Policies:
-        - PolicyName: S3UploadAndGetAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: s3:PutObject
-                Resource: !Sub arn:aws:s3:::robin-finished-xlsx/*
-              - Effect: Allow
-                Action: s3:GetObject
-                Resource: !Sub arn:aws:s3:::robin-finished-xlsx/*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
@@ -45,35 +340,58 @@ Resources:
       CorsConfiguration:
         AllowOrigins:
           - "https://mktanon.com"
-          - "http://127.0.0.1:5505"
+          - "http://127.0.0.1:5506"
         AllowMethods:
           - "POST"
         AllowHeaders:
           - "*"
         
-  UploadCsvFunction:
+  CreateFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: robinReader/package
-      Handler: uploadCsvFunction.lambda_handler
+      Handler: createFunction.lambda_handler
       Runtime: python3.10
       Layers:
         - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
-      Environment:
-        Variables:
-          CSV_BUCKET: robin-csv-upload
-          XLSX_BUCKET: robin-finished-xlsx
       Role: !GetAtt MktAnonSiteFunctionRole.Arn
       Events:
         UploadCsvApiCalled:
           Type: HttpApi
           Properties:
             ApiId: !Ref MktAnonApi
-            Path: /upload
+            Path: /create
             Method: post
 
 Outputs:
   UploadCsvApiEndpoint:
     Description: "API endpoint URL for uploading CSV"
-    Value: !Sub "https://${ChartStampApi}.execute-api.${AWS::Region}.amazonaws.com/upload"
+    Value: !Sub "https://${MktAnonApi}.execute-api.${AWS::Region}.amazonaws.com/create"
   
+  OriginVerifySecret:
+    Description: Secrets Manager Secret for Origin Validation 
+    Value: !Sub https://console.aws.amazon.com/secretsmanager/home?region=${AWS::Region}#/secret?name=${OriginVerifySecret}
+
+  cfEndpoint:
+    Description: Test website - CloudFront endpoint
+    Value: !Join ['', ['https://', !GetAtt 'cloudFrontDistribution.DomainName']]
+
+  cfDistro:
+    Description: CloudFront distribution associated with test website
+    Value: !Sub https://${AWS::Region}.console.aws.amazon.com/cloudfront/v3/home?region=${AWS::Region}#/distributions/${cloudFrontDistribution}
+
+  apiEndpoint: 
+    Description: HTTP API Domain URL
+    Value: !Sub "${apiGateway.ApiEndpoint}"
+
+  HTTPApi:
+    Description: CloudFront distribution associated with test website
+    Value: !Sub https://console.aws.amazon.com/apigateway/main/api-detail?api=${apiGateway}&region=${AWS::Region}
+
+  OriginSecretRotateFunction:
+    Value: !Sub https://console.aws.amazon.com/lambda/home?region=${AWS::Region}#/functions/${OriginSecretRotateFunction}
+    Description: Secrets Manager Rotation Lambda Function
+
+  LambdaAuthorizerFunction:
+    Description: The API Gateway Authorizer Lambda Function
+    Value: !Sub https://console.aws.amazon.com/lambda/home?region=${AWS::Region}#/functions/${authorizerLambda}

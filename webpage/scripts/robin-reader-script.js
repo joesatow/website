@@ -1,15 +1,12 @@
 let uploadUrl = '';
 let createUrl = '';
-let prod_base_url = 'https://8yp72j081a.execute-api.us-east-2.amazonaws.com'
+let prod_base_url = 'https://ukd60nn9z8.execute-api.us-east-2.amazonaws.com/'
 
-const test = true
+const test = false
 if (test) {
-  uploadUrl = 'http://127.0.0.1:3000/upload';
   createUrl = 'http://127.0.0.1:3000/create';
-  uploadUrl = 'http://192.168.118.134:3000/upload';
   createUrl = 'http://192.168.118.134:3000/create';
 } else {
-  uploadUrl = `${prod_base_url}/upload`;
   createUrl = `${prod_base_url}/create`;
 }
 
@@ -94,11 +91,10 @@ async function create(file, fileName) {
     const encodedContent = btoa(result); // Encode content in base64
 
     const body = {
-      csv_file_name: fileName,
       csv_content: encodedContent // Add encoded content to the body
     }
 
-    const response = await fetch(uploadUrl, {
+    const response = await fetch(createUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

@@ -4,28 +4,10 @@ Description: 'mktanon site'
 
 Globals:
   Function:
-    Timeout: 10
-    MemorySize: 128
+    Timeout: 30
+    MemorySize: 1024
 
 Resources:
-  RobinReaderCsvUploadBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: robin-csv-upload
-      CorsConfiguration:
-        CorsRules:
-          - AllowedOrigins:
-              - "*"
-            AllowedMethods:
-              - POST
-            AllowedHeaders:
-              - "*"
-
-  RobinReaderFinishedXlsxBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: robin-finished-xlsx
-
   MktAnonSiteFunctionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -37,84 +19,41 @@ Resources:
               Service:
                 - lambda.amazonaws.com
             Action: sts:AssumeRole
-      Policies:
-        - PolicyName: S3UploadAndGetAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: s3:PutObject
-                Resource: !Sub arn:aws:s3:::robin-csv-upload/*
-              - Effect: Allow
-                Action: s3:GetObject
-                Resource: !Sub arn:aws:s3:::robin-csv-upload/*
-              - Effect: Allow
-                Action: s3:PutObject
-                Resource: !Sub arn:aws:s3:::robin-finished-xlsx/*
-              - Effect: Allow
-                Action: s3:GetObject
-                Resource: !Sub arn:aws:s3:::robin-finished-xlsx/*
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
 
-  ChartStampApi:
+  MktAnonApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       CorsConfiguration:
         AllowOrigins:
           - "https://mktanon.com"
-          - "http://127.0.0.1:5500"
+          - "http://127.0.0.1:5506"
         AllowMethods:
           - "POST"
         AllowHeaders:
           - "*"
         
-  UploadCsvFunction:
+  CreateFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: robinReader/package
-      Handler: uploadCsvFunction.lambda_handler
+      Handler: createFunction.lambda_handler
       Runtime: python3.10
-      Environment:
-        Variables:
-          CSV_BUCKET: robin-csv-upload
+      Layers:
+        - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
       Role: !GetAtt MktAnonSiteFunctionRole.Arn
       Events:
         UploadCsvApiCalled:
           Type: HttpApi
           Properties:
-            ApiId: !Ref ChartStampApi
-            Path: /upload
-            Method: post
-
-  CreateXlsxFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: robinReader/package
-      Handler: createXlsxFunction.lambda_handler
-      Runtime: python3.10
-      Layers:
-        - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
-      Environment:
-        Variables:
-          CSV_BUCKET: robin-csv-upload
-          XLSX_BUCKET: robin-finished-xlsx
-      Role: !GetAtt MktAnonSiteFunctionRole.Arn
-      Events:
-        CreateXlsxApiCalled:
-          Type: HttpApi
-          Properties:
-            ApiId: !Ref ChartStampApi
+            ApiId: !Ref MktAnonApi
             Path: /create
             Method: post
 
 Outputs:
   UploadCsvApiEndpoint:
     Description: "API endpoint URL for uploading CSV"
-    Value: !Sub "https://${ChartStampApi}.execute-api.${AWS::Region}.amazonaws.com/upload"
+    Value: !Sub "https://${MktAnonApi}.execute-api.${AWS::Region}.amazonaws.com/create"
   
-  CreateXlsxApiEndpoint:
-    Description: "Endpoint URL for creating XLSX"
-    Value: !Sub "https://${ChartStampApi}.execute-api.${AWS::Region}.amazonaws.com/create"
-       

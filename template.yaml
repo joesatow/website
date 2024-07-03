@@ -5,6 +5,7 @@ Description: 'mktanon site'
 Globals:
   Function:
     Timeout: 30
+    Runtime: python3.10
     MemorySize: 1024
 
 Parameters:
@@ -25,7 +26,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
         Description: "Sample Hello World Lambda"
-        Runtime: python3.10
         CodeUri: robinReader/api_auth
         Handler: sample_function.lambda_handler
         Role: !GetAtt sampleWebsiteLambdaFunctionRole.Arn    
@@ -143,7 +143,6 @@ Resources:
       Description: Secrets Manager Rotation Lambda
       Handler: originSecretRotateFunction.lambda_handler
       CodeUri: robinReader/api_auth
-      Runtime: python3.10
       Environment:
         Variables:
           CFDISTROID: !Ref cloudFrontDistribution
@@ -157,12 +156,15 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: "Authorizer Lambda Function"
-      Runtime: python3.10
       # Timeout has to be atleast 30 sec
       Timeout: 900
       CodeUri: robinReader/api_auth
       Handler: authorizerFunction.lambda_handler
       Role: !GetAtt authorizerLambdaFunctionRole.Arn
+      Environment:
+        Variables:
+          REGION: !Ref "AWS::Region"
+
   
   # IAM Role for the authorizer Lambda function. Authorizer Lambda should be able to get secret from the origin verify secret. 
   authorizerLambdaFunctionRole:
@@ -351,7 +353,6 @@ Resources:
     Properties:
       CodeUri: robinReader/package
       Handler: createFunction.lambda_handler
-      Runtime: python3.10
       Layers:
         - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
       Role: !GetAtt MktAnonSiteFunctionRole.Arn

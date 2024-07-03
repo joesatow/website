@@ -4,6 +4,7 @@ Description: mktanon site
 Globals:
   Function:
     Timeout: 30
+    Runtime: python3.10
     MemorySize: 1024
 Parameters:
   RotateInterval:
@@ -21,7 +22,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: Sample Hello World Lambda
-      Runtime: python3.10
       CodeUri: sampleWebsiteLambdaFunction
       Handler: sample_function.lambda_handler
       Role:
@@ -138,7 +138,6 @@ Resources:
       Description: Secrets Manager Rotation Lambda
       Handler: originSecretRotateFunction.lambda_handler
       CodeUri: OriginSecretRotateFunction
-      Runtime: python3.10
       Environment:
         Variables:
           CFDISTROID:
@@ -156,7 +155,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Description: Authorizer Lambda Function
-      Runtime: python3.10
       Timeout: 900
       CodeUri: authorizerLambda
       Handler: authorizerFunction.lambda_handler
@@ -164,6 +162,10 @@ Resources:
         Fn::GetAtt:
         - authorizerLambdaFunctionRole
         - Arn
+      Environment:
+        Variables:
+          REGION:
+            Ref: AWS::Region
     Metadata:
       SamResourceId: authorizerLambda
   authorizerLambdaFunctionRole:
@@ -353,7 +355,6 @@ Resources:
     Properties:
       CodeUri: CreateFunction
       Handler: createFunction.lambda_handler
-      Runtime: python3.10
       Layers:
       - arn:aws:lambda:us-east-2:770693421928:layer:Klayers-p310-pandas:13
       Role:

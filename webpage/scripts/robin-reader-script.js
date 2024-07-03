@@ -2,10 +2,10 @@ let uploadUrl = '';
 let createUrl = '';
 let prod_base_url = 'https://ukd60nn9z8.execute-api.us-east-2.amazonaws.com/'
 
-const test = false
+const test = true
 if (test) {
   createUrl = 'http://127.0.0.1:3000/create';
-  createUrl = 'http://192.168.118.134:3000/create';
+  createUrl = 'http://192.168.118.136:3000/create';
 } else {
   createUrl = `${prod_base_url}/create`;
 }

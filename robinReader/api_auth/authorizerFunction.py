@@ -1,9 +1,11 @@
 import json
 import boto3
 import base64
+import os
 from botocore.exceptions import ClientError
 
-region_name = '${region}'
+region_name = os.environ['REGION']
+print(region_name)
 
 # Create a Secrets Manager client
 session = boto3.session.Session()

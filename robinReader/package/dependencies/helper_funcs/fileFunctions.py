@@ -1,6 +1,4 @@
 import csv
-import os
-from aws_jserver import get_object_s3
 from io import StringIO
 
 def getData(file):

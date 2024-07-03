@@ -5,13 +5,11 @@ from dependencies.helper_funcs.contractDictFunctions import createNewDictEntry
 from dependencies.helper_funcs.contractDictUpdate import getContractDictUpdate
 from dependencies.helper_funcs.tradeListFunctions import getTradeDictUpdate
 from dependencies.helper_funcs.outputFunctions import writeCSV
-import tempfile
-import os
 import json
 import base64
 
 def lambda_handler(event, context):
-  print(json.dumps(event))
+  #print(json.dumps(event))
   try:
     body = json.loads(event['body'])
     csv_content = body['csv_content']

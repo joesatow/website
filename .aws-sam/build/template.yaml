@@ -207,12 +207,20 @@ Resources:
     Properties:
       ProtocolType: HTTP
       Name: APIGateway
+      CorsConfiguration:
+        AllowOrigins:
+        - https://mktanon.com
+        - http://127.0.0.1:5506
+        AllowMethods:
+        - POST
+        AllowHeaders:
+        - '*'
   apiGwRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       ApiId:
         Ref: apiGateway
-      RouteKey: GET /
+      RouteKey: POST /create
       AuthorizationType: CUSTOM
       AuthorizerId:
         Ref: apiGwAuthorizer
@@ -233,7 +241,7 @@ Resources:
         - arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
         - lambdaArn:
             Fn::GetAtt:
-            - sampleWebsiteLambdaFunction
+            - CreateFunction
             - Arn
       PayloadFormatVersion: '2.0'
   apiGwStage:
@@ -281,7 +289,7 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       FunctionName:
-        Ref: sampleWebsiteLambdaFunction
+        Ref: CreateFunction
       SourceArn:
         Fn::Sub:
         - arn:${AWS::Partition}:execute-api:${AWS::Region}:${AWS::AccountId}:${__ApiId__}/${__Stage__}/*
@@ -318,9 +326,13 @@ Resources:
         Enabled: true
         DefaultCacheBehavior:
           AllowedMethods:
-          - GET
           - HEAD
+          - DELETE
+          - POST
+          - GET
           - OPTIONS
+          - PUT
+          - PATCH
           TargetOriginId: apiGwOrigin
           ViewerProtocolPolicy: redirect-to-https
           ForwardedValues:

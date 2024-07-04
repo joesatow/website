@@ -1,8 +1,8 @@
 let uploadUrl = '';
 let createUrl = '';
-let prod_base_url = 'https://ukd60nn9z8.execute-api.us-east-2.amazonaws.com/'
+let prod_base_url = 'https://71wfkk850g.execute-api.us-east-2.amazonaws.com/'
 
-const test = true
+const test = false
 if (test) {
   createUrl = 'http://127.0.0.1:3000/create';
   createUrl = 'http://192.168.118.136:3000/create';
@@ -102,7 +102,7 @@ async function create(file, fileName) {
       redirect: "follow",
       body: JSON.stringify(body)
     });
-
+    //console.log(JSON.stringify(body))
     if (response.ok) {
       const blob = await response.blob();
       const download_link = window.URL.createObjectURL(blob);

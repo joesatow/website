@@ -1,2 +1,3 @@
 syncToS3
-.aws-sam/*
+.aws-sam/
+.vscode/

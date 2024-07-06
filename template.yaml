@@ -208,7 +208,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Api
     Properties:
       ProtocolType: HTTP  
-      Name: APIGateway
+      Name: APIGateway-mktanon
       CorsConfiguration:
         AllowOrigins:
           - "https://mktanon.com"

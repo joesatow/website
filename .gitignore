@@ -1,3 +1,4 @@
 syncToS3
 .aws-sam/
 .vscode/
+lambda-memory-performance-benchmark/

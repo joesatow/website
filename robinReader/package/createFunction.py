@@ -5,11 +5,11 @@ from dependencies.helper_funcs.contractDictFunctions import createNewDictEntry
 from dependencies.helper_funcs.contractDictUpdate import getContractDictUpdate
 from dependencies.helper_funcs.tradeListFunctions import getTradeDictUpdate
 from dependencies.helper_funcs.outputFunctions import writeCSV
+from dependencies.helper_funcs.leftovers import get_leftovers_list
 import json
 import base64
 
 def lambda_handler(event, context):
-  #print(json.dumps(event))
   try:
     body = json.loads(event['body'])
     csv_content = body['csv_content']
@@ -41,6 +41,9 @@ def lambda_handler(event, context):
       if currentContract['currentQuantity'] == 0:
         tradeList.append(getTradeDictUpdate(currentContract, description, line['Process Date'])) # use process date to get buy date
         del contractDict[description]
+
+    leftovers_list = get_leftovers_list(contractDict)
+    tradeList = leftovers_list + tradeList
 
     output = writeCSV(tradeList)
     encoded_content = base64.b64encode(output.getvalue()).decode()

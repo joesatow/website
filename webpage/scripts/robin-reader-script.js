@@ -1,6 +1,6 @@
 let uploadUrl = '';
 let createUrl = '';
-let prod_base_url = 'https://71wfkk850g.execute-api.us-east-2.amazonaws.com/'
+let prod_base_url = 'https://egb0yflfd8.execute-api.us-east-2.amazonaws.com'
 
 const test = true
 if (test) {
@@ -93,7 +93,7 @@ async function create(file, fileName) {
     const body = {
       csv_content: encodedContent // Add encoded content to the body
     }
-
+    
     const response = await fetch(createUrl, {
       method: "POST",
       headers: {

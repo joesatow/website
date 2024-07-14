@@ -11,4 +11,4 @@ def getData(file):
 
     # Return everything but first row and last 2 rows
     # First row is headers, last two rows are robinhood text, not data we want 
-    return data[0:-2] 
+    return data[0:-2]  

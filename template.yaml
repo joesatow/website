@@ -377,7 +377,7 @@ Resources:
             Method: post
 
 Outputs:
-  UploadCsvApiEndpoint:
+  CreateApiEndpoint:
     Description: "API endpoint URL for uploading CSV"
     Value: !Sub "https://${MktAnonApi}.execute-api.${AWS::Region}.amazonaws.com/create"
   

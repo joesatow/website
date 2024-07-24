@@ -1,11 +1,12 @@
 # function to fix amounts
-def fixAmount(str):
-    amount = str.replace('$','').replace(',','')
-    if '(' in amount:
-        amount = amount.replace('(','').replace(')','')
-        amount = float(amount)
+def getAmount(str):
+    buySell = str['Trans Code']
+    quantity = int(str['Quantity'])
+    price = float(str['Price'].replace('$', ''))
+    amount = quantity*price*100
+    
+    if buySell == 'BTO':
         amount = -amount
-    amount = round(float(amount),0)
     return amount
 
 
@@ -15,7 +16,7 @@ def fixAmount(str):
 # this is necessary for netting out quantity, since there's no STC transactions for some trades if you let them expire worthless.
 # 0 = description
 # 1 = quantity
-# 2 = amount
+# 2 = purchase amount
 def getCurrentValue(value, line):
     transCode = line['Trans Code']
 
@@ -35,7 +36,7 @@ def getCurrentValue(value, line):
             else:
                 return -int(line['Quantity']) 
         if value == 2:
-            return fixAmount(line['Amount'])
+            return getAmount(line)
 
 def getAverages(currentContract):
     buySum = currentContract['buySum']

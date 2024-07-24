@@ -47,12 +47,28 @@ def lambda_handler(event, context):
 
     output = writeCSV(tradeList)
     encoded_content = base64.b64encode(output.getvalue()).decode()
+
+    origin = event['headers'].get('origin')
+    allowed_origins = [
+        'https://mktanon.com',
+        'http://10.1.15.17:5506',
+        'http://10.1.15.17:5507'
+    ]
+
+    # Check if the origin is in the list of allowed origins
+    if origin in allowed_origins:
+        allow_origin = origin
+    else:
+        allow_origin = 'null'  # or set to some default value
     
     return {
         'statusCode': 200,
         'headers': {
             'Content-Type': 'application/octet-stream',
-            'Content-Disposition': 'attachment; filename="modified_file.txt"'
+            'Content-Disposition': 'attachment; filename="modified_file.txt"',
+            'Access-Control-Allow-Origin': allow_origin,
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': '*'
         },
         'body': encoded_content,
         'isBase64Encoded': True
@@ -60,8 +76,8 @@ def lambda_handler(event, context):
   except Exception as e:
     return {
         'statusCode': 500,
-        "headers": {
-          "Content-Type": "application/json"
+        'headers': {
+          'Content-Type': 'application/json'
         },
         'body': json.dumps({'peen error': str(e)})
     }

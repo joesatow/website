@@ -1,8 +1,8 @@
 let uploadUrl = '';
 let createUrl = '';
-let prod_base_url = 'https://egb0yflfd8.execute-api.us-east-2.amazonaws.com'
+let prod_base_url = 'https://wd1sp0lf7h.execute-api.us-east-2.amazonaws.com/PROD'
 
-const test = true
+const test = false
 if (test) {
   createUrl = 'http://127.0.0.1:3000/create';
   //createUrl = 'http://192.168.118.136:3000/create';
@@ -104,7 +104,22 @@ async function create(file, fileName) {
     });
     //console.log(JSON.stringify(body))
     if (response.ok) {
-      const blob = await response.blob();
+      const data = await response.text()
+      const base64String = data;
+        
+      // Decode Base64 string to binary data
+      const binaryString = atob(base64String);
+      const binaryLength = binaryString.length;
+      const bytes = new Uint8Array(binaryLength);
+      
+      for (let i = 0; i < binaryLength; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      // Create a Blob from the binary data
+      const blob = new Blob([bytes], { type: 'application/octet-stream' });
+      
+      // Create a download link for the Blob
       const download_link = window.URL.createObjectURL(blob);
       const newFilename = fileName.replace(".csv", ".xlsx");
       showCheckmark()
@@ -148,4 +163,13 @@ function handleFileSizeTooBig() {
   disableButton();
   showDownloadBarStatus(2);
   throw new Error("File size too big");
+}
+
+function myFunction() {
+  var x = document.getElementById("myLinks");
+  if (x.style.display === "block") {
+    x.style.display = "none";
+  } else {
+    x.style.display = "block";
+  }
 }

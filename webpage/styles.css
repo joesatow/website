@@ -1,3 +1,41 @@
+.mobile-nav {
+    overflow: hidden;
+    background-color: #222;
+    position: relative;
+  }
+  
+.mobile-nav #myLinks {
+    display: none;
+}
+
+.mobile-nav a {
+    color: white;
+    padding: 14px 16px;
+    text-decoration: none;
+    text-align: center;
+    font-size: 17px;
+    display: block;
+}
+
+.mobile-nav a.icon {
+    background: #222;
+    display: block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+}
+
+.mobile-nav a:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.active {
+    background-color: #04AA6D;
+    color: white;
+}
+
 body, html {
     height: 100%;
     margin: 0;
@@ -6,11 +44,25 @@ body, html {
     background-color: #333;
 }
 
+#about-content {
+    display: flex;
+    flex-direction: column;
+    width: 85%;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    height: 40%;
+}
+
+#about-content p {
+    text-align: center;
+}
+
 .content {
     display: flex;
     flex-direction: column;
-    margin-top: 3%;
-    padding-bottom: 3%;
+    margin-top: 8%;
+    padding-bottom: 30%;
     align-items: center;
 }
 
@@ -20,20 +72,26 @@ body, html {
     align-items: center;
     justify-content: center;
     height: 90vh;
+    width: 80%;
+    margin: auto;
+}
+
+.index-content h3 {
+    text-align: center;
 }
 
 #uploadForm {
     display: flex;
     flex-direction: column;
     align-items: center;  
-    width: 80%;
+    width: 90%;
 }
 
 .robinreader-actionbox {
     padding: 10px;
     border: 1px solid #ccc; /* Adds a border around the box */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow to the box */
-    width: 50%;
+    width: 80%;
     max-width: 500px;
     background-color: rgb(171, 171, 171);
     display: flex;
@@ -42,7 +100,8 @@ body, html {
 }
 
 .robinreader-actionbox button {
-    margin: 10px;
+    margin: 4px;
+    font-size: 18px;
 }
 
 h1 {
@@ -159,7 +218,7 @@ button:disabled {
 .logo img {
     height: 40px; /* Adjust based on your logo's size */
     border-radius: 5px;
-    margin: 10px;
+    margin: 4px;
 }
 
 .logo span {
@@ -184,8 +243,12 @@ button:disabled {
     color: black;
 }
 
+.navbar {
+    display: none;
+}
+
 #description {
-    width: 50%;
+    width: 80%;
     max-width: 500px;
 }
 
@@ -213,4 +276,237 @@ button:disabled {
     color: #333;
     width: 90%;
     text-align: center;
+}
+
+.hyperlinks {
+    color: lightblue;
+}
+
+#help-test-robinreader {
+    width: 80%;
+    text-align: center;
+}
+
+@media (min-width:481px)  {
+    .mobile-nav {
+        display: none;
+    }
+
+    body, html {
+        height: 100%;
+        margin: 0;
+    }
+    
+    .content {
+        display: flex;
+        flex-direction: column;
+        margin-top: 3%;
+        padding-bottom: 3%;
+        align-items: center;
+    }
+    
+    .index-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 90vh;
+    }
+    
+    #uploadForm {
+        display: flex;
+        flex-direction: column;
+        align-items: center;  
+        width: 80%;
+    }
+    
+    .robinreader-actionbox {
+        padding: 10px;
+        border: 1px solid #ccc; /* Adds a border around the box */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Adds a subtle shadow to the box */
+        width: 50%;
+        max-width: 500px;
+        background-color: rgb(171, 171, 171);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .robinreader-actionbox button {
+        margin: 10px;
+    }
+    
+    h1 {
+        margin: 0;
+        font-size: 4em;
+    }
+    
+    h3 {
+        margin: 10px 0 0;  /* Spacing above h3, adjust as needed */
+        font-size: 1.5em;  /* Smaller than h1, but still significant */
+        color: #ccc;  /* Slightly lighter than the main text color */
+    }
+    
+    input[type="file"] {
+        padding: 10px 15px;
+        margin: 10px 0px;
+        width: 100%;
+        color: #f2f2f2;
+        background-color: #444;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        transition: background-color 0.3s ease;
+    }
+    
+    input[type="file"]::file-selector-button {
+        color: #f2f2f2;
+        background-color: #666;
+        border: none;
+        padding: 10px 15px;
+        margin: 0px 10px 0px 0px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    input[type="file"]:hover::file-selector-button {
+        background-color: #888;
+    }
+    
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: #fff;
+        background-color: #666;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    button:hover {
+        background-color: #888;
+    }
+    
+    button:disabled {
+        background-color: lightgray;
+        pointer-events: none;
+    }
+    
+    .checkmark {
+        display: block;
+        font-size: 20px;
+        color: green;
+    }
+    
+    .error-mark {
+        display: block;
+        font-size: 18px;
+        color: red;
+    }
+    
+    .spinner {
+        border: 3px solid rgba(0,0,0,0.3);
+        border-radius: 50%;
+        border-top: 3px solid #3498db;
+        width: 20px;
+        height: 20px;
+        animation: spin 1s linear infinite;
+        display: none;
+      }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .grid-container {
+        display: none;
+        grid-template-columns: 1fr .001fr;
+        grid-template-rows: auto;
+        gap: 6px;  /* Space between grid items */
+    }
+      
+    .box {
+        color: #333;
+        height: 30px; 
+        align-items: center;
+        align-content: center;
+    }
+    
+    .navbar {
+        display: flex;
+        background-color: #222;
+        align-items: center;
+    }
+    
+    .logo {
+        display: flex;
+        align-items: center;
+    }
+    
+    .logo img {
+        height: 40px; /* Adjust based on your logo's size */
+        border-radius: 5px;
+        margin: 10px;
+    }
+    
+    .logo span {
+        margin-left: 2px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+    
+    .nav-items a {
+        text-decoration: none;
+        color: #f2f2f2;
+        font-size: 16px;
+        padding: 20px 12px;
+    }
+    
+    .nav-items {
+        margin-left: 18px;
+    }
+    
+    .navbar a:hover {
+        background-color: #ddd;
+        color: black;
+    }
+    
+    #description {
+        width: 50%;
+        max-width: 500px;
+    }
+    
+    #description p {
+        margin: 30px 0px;
+    }
+    
+    #description h1 {
+        text-align: center;
+    }
+    
+    #download-link {
+        display: none;
+        padding: 10px 0px 5px 0px;
+    }
+    
+    #download-link span {
+        color: #333;
+        font-size: 16px;
+    }
+    
+    #other-error-info {
+        display: none;
+        padding: 10px 0px 0px 0px;
+        color: #333;
+        width: 90%;
+        text-align: center;
+    }
+    
+    #account-report-howto-link {
+        color: lightblue;
+    }
 }

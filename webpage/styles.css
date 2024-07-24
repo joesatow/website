@@ -23,6 +23,7 @@
     position: absolute;
     right: 0;
     top: 0;
+    margin-top: 1%;
     height: 100%;
 }
 
@@ -56,6 +57,10 @@ body, html {
 
 #about-content p {
     text-align: center;
+}
+
+#about-content h1 {
+    margin: 15%;
 }
 
 .content {
@@ -218,7 +223,7 @@ button:disabled {
 .logo img {
     height: 40px; /* Adjust based on your logo's size */
     border-radius: 5px;
-    margin: 4px;
+    margin: 8px;
 }
 
 .logo span {
@@ -288,6 +293,14 @@ button:disabled {
 }
 
 @media (min-width:481px)  {
+    #about-content h1{
+        margin: 5%;
+    }
+
+    #about-content {
+        width: 50%;
+    }
+
     .mobile-nav {
         display: none;
     }

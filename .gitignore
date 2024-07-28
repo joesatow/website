@@ -1,4 +1,5 @@
 syncToS3
+syncToS3andInvalidate
 .aws-sam/
 .vscode/
 webpage/.vscode/

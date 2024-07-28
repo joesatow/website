@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#222">
-    <title>mktanon | About</title>
+    <title>mktanon | FAQ</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -19,13 +19,18 @@
 
 <body>
     <div id="nav-placeholder"></div>
-    <div class="container">
-        <div id="about-content">
-            <h1>About</h1>
-            <p>This is the site I'd like to upload all of my trading/stock market related projects to.  These are projects I build for myself that I find helpful and I figure will be helpful for others.</p><br><p>Follow my <a class="hyperlinks" href="https://twitter.com/mktanon">twitter</a> for more.</p>
+    <div class="faq-section">
+        <h1>Frequently Asked Questions</h1>
+        <h3>Click into any to find out more.</h3>
+        <div class="faq-item">
+            <button class="faq-question">Robin Reader</button>
+            <div class="faq-answer">
+                <h4>1. Is my data collected?</h4>
+                <p>No data is collected.  This program is run on AWS Lambda.  If you are unfamiliar, your data only exists inside the Lambda execution environment while the script is running.  Once the script finishes, the environment is subsequently destroyed.  Hence,  your data is not kept anywhere.</p>
+            </div>
         </div>
     </div>
-    <script src="scripts/index.js"></script>
+    <script src="scripts/faq.js"></script>
     <script src="scripts/load-nav.js"></script>
     <script type="module" src="scripts/firebase.js"></script>
 </body>
